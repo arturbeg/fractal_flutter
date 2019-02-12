@@ -1,4 +1,4 @@
-// Version 1.0
+// Version 1.1
 import 'dart:async';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -6,7 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import './chatmessagelistitem.dart';
+import './messageslayout.dart';
+
 
 class ChatScreen extends StatefulWidget {
   @override
@@ -34,20 +35,7 @@ class ChatScreenState extends State<ChatScreen> {
           child: new Column(
             children: <Widget>[
               new Flexible(
-                  child: StreamBuilder<QuerySnapshot>(
-                stream: Firestore.instance.collection('messages').snapshots(),
-                builder: (BuildContext context,
-                    AsyncSnapshot<QuerySnapshot> snapshot) {
-                  if (snapshot.hasError)
-                    return new Text('Error: ${snapshot.error}');
-                  switch (snapshot.connectionState) {
-                    case ConnectionState.waiting:
-                      return new Text('Loading...');
-                    default:
-                      return new ChatMessageListItem();
-                  }
-                },
-              )),
+                child: MessagesList()),
               new Divider(height: 1.0),
               new Container(
                 decoration:

@@ -8,7 +8,10 @@ class ChatMessageListItem extends StatelessWidget {
   // final Animation animation;
 
   // ChatMessageListItem({this.animation});
+  String messageText;
+  String senderName;
 
+  ChatMessageListItem({this.messageText, this.senderName});
 
   @override
   Widget build(BuildContext context) {
@@ -42,13 +45,13 @@ class ChatMessageListItem extends StatelessWidget {
         child: new Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            new Text("Artur Begyan", style: new TextStyle(
+            new Text(senderName, style: new TextStyle(
                     fontSize: 14.0,
                     color: Colors.black,
                     fontWeight: FontWeight.bold)),
             new Container(
               margin: const EdgeInsets.only(top: 5.0),
-              child: new Text("Default message text")
+              child: new Text(messageText)
             )        
           ],
         )
