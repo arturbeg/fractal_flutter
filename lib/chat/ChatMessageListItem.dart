@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 
 class ChatMessageListItem extends StatelessWidget {
   
-  // final DataSnapshot messageSnapshot;
+  final DocumentSnapshot messageSnapshot;
   // final Animation animation;
 
   // ChatMessageListItem({this.animation});
-  String messageText;
-  String senderName;
+  // String messageText;
+  // String senderName;
 
-  ChatMessageListItem({this.messageText, this.senderName});
+
+  ChatMessageListItem({this.messageSnapshot});
 
   @override
   Widget build(BuildContext context) {
@@ -45,13 +48,13 @@ class ChatMessageListItem extends StatelessWidget {
         child: new Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            new Text(senderName, style: new TextStyle(
+            new Text("Artur Begyan", style: new TextStyle(
                     fontSize: 14.0,
                     color: Colors.black,
                     fontWeight: FontWeight.bold)),
             new Container(
               margin: const EdgeInsets.only(top: 5.0),
-              child: new Text(messageText)
+              child: new Text(messageSnapshot['text'])
             )        
           ],
         )

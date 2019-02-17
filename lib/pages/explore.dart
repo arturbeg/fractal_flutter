@@ -4,26 +4,32 @@ import '../model/chat_model.dart';
 import '../chat/chatscreen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../view/chatItem.dart';
-import '../auth_state.dart';
 
 
-class chats extends StatefulWidget {
+
+class explore extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
-    return new ChatState();
+    return new ExploreState();
   }
 }
 
-class ChatState extends State<chats> {
+class ExploreState extends State<explore> {
+  @override
+  Widget build(BuildContext context) {
+    return new ExploreChatsList();
+  }
+}
 
-  final joinedChats = Firestore.instance.collection('joinedChats').where(
-    'userId', isEqualTo: AuthState.currentUser.documentID
-  ).snapshots();
 
+class ExploreChatsList extends StatelessWidget {
+
+  final exploreChatsStream = Firestore.instance.collection('chats').snapshots();
+  // TODO: change the StreamBuilder implementation (circular progress instead of "Loading...")
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: joinedChats,
+      stream: exploreChatsStream,
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasError)
           return new Text('Error: ${snapshot.error}');
@@ -32,7 +38,6 @@ class ChatState extends State<chats> {
           default:
             return new ListView(
               children: snapshot.data.documents.map((DocumentSnapshot document) {
-
                 return new ChatItem(chatDocument: document);
               }).toList(),
             );
@@ -40,7 +45,6 @@ class ChatState extends State<chats> {
       },
     );
   }
-
 }
 
 

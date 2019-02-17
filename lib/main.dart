@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import './WhatsAppHome.dart';
+import './auth_state.dart';
+
 
 void main() {
   runApp(LoginPage());
@@ -17,18 +19,26 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   bool isLoggedIn = false;
-  var profileData;
+  DocumentSnapshot userDocument;
+  // var profileData;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final Firestore _db = Firestore.instance;
 
 
   var facebookLogin = FacebookLogin();
 
-  void onLoginStatusChanged(bool isLoggedIn, {profileData}) {
+  void onLoginStatusChanged(bool isLoggedIn, {userDocument}) {
     setState(() {
       this.isLoggedIn = isLoggedIn;
-      this.profileData = profileData;
+      this.userDocument = userDocument;
     });
+
+    if(isLoggedIn) {
+      AuthState.instance.setUser(userDocument);
+    } else {
+      AuthState.instance.setUser(null);
+    }
+
   }
 
   @override
@@ -91,11 +101,20 @@ class _LoginPageState extends State<LoginPage> {
 
           if(user != null) {
             final QuerySnapshot result = await Firestore.instance.collection('users')
-              .where('id', isEqualTo: user.uid)
+              .where('uid', isEqualTo: user.uid)
               .getDocuments();
 
             final List<DocumentSnapshot> documents = result.documents;
 
+            var graphResponse = await http.get(
+            'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email,picture.height(200)&access_token=${facebookLoginResult
+                .accessToken.token}');
+
+            var profile = json.decode(graphResponse.body);
+            print(profile.toString());
+
+            
+            // TODO: check if works
             if(documents.length == 0)  {
               // Update data to server if new user
               Firestore.instance
@@ -103,52 +122,35 @@ class _LoginPageState extends State<LoginPage> {
                 .document(user.uid)
                 .setData({
                   'name': user.displayName,
-                  'id': user.uid
+                  'about': "",
+                  "email": user.email,
+                  "lastSeen": Timestamp(user.metadata.lastSignInTimestamp,0),
+                  "avatarURL": profile['picture']['data']['url'], // might change to store on firebase storage
+                  "timestamp": Timestamp(user.metadata.creationTimestamp,0),
+                  'uid': user.uid,
+                  "username": ""
                 });
-            }  
+
+                var userDocumentNew = await Firestore.instance.collection('users').document(user.uid).get();
+
+                onLoginStatusChanged(true, userDocument: userDocumentNew);
+
+            } else {
+              var userDocumentNew = await Firestore.instance.collection('users').document(user.uid).get();
+
+              onLoginStatusChanged(true, userDocument: userDocumentNew);
+            }
+
+            
+
+            break; 
           }
 
         } catch(e) {
           print(e);
         } 
-        var graphResponse = await http.get(
-            'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email,picture.height(200)&access_token=${facebookLoginResult
-                .accessToken.token}');
-
-        var profile = json.decode(graphResponse.body);
-        print(profile.toString());
-
-        onLoginStatusChanged(true, profileData: profile);
-        break;
+        
     }
-  }
-
-  _displayUserData(profileData) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Container(
-          height: 200.0,
-          width: 200.0,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            image: DecorationImage(
-              fit: BoxFit.fill,
-              image: NetworkImage(
-                profileData['picture']['data']['url'],
-              ),
-            ),
-          ),
-        ),
-        SizedBox(height: 28.0),
-        Text(
-          "Logged in as: ${profileData['name']}",
-          style: TextStyle(
-            fontSize: 20.0,
-          ),
-        ),
-      ],
-    );
   }
 
   _displayLoginButton() {
@@ -159,8 +161,8 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   _displayHomePage() {
-    // display the Tabular home page
-   return WhatsAppHome();
+    // TODO: provide profile data to the Home Page
+   return WhatsAppHome(userDocument: userDocument);
   }
 
   _logout() async {

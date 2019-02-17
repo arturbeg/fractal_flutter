@@ -7,9 +7,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import './messageslayout.dart';
+import '../auth_state.dart';
+
 
 
 class ChatScreen extends StatefulWidget {
+  
+  final DocumentSnapshot chatDocument;
+  ChatScreen({this.chatDocument});
+  
   @override
   ChatScreenState createState() {
     return new ChatScreenState();
@@ -17,6 +23,8 @@ class ChatScreen extends StatefulWidget {
 }
 
 class ChatScreenState extends State<ChatScreen> {
+
+  
   final TextEditingController _textEditingController =
       new TextEditingController();
   bool _isComposingMessage = false;
@@ -25,17 +33,30 @@ class ChatScreenState extends State<ChatScreen> {
   final Firestore _db = Firestore.instance;
   final reference = Firestore.instance.collection('messages');
 
+
+  DocumentSnapshot currentUser;
+
+  void initState() {
+
+    super.initState();
+    currentUser = AuthState.currentUser;
+    print("THE CURRENT USER IS:");
+    print(currentUser['name']);
+
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
         appBar: new AppBar(
-          title: new Text("Flutter Chat App"),
+          title: new Text(widget.chatDocument['name']),
         ),
         body: new Container(
           child: new Column(
             children: <Widget>[
               new Flexible(
-                child: MessagesList()),
+                child: MessagesList(chatDocument: widget.chatDocument,)),
               new Divider(height: 1.0),
               new Container(
                 decoration:
@@ -162,17 +183,57 @@ class ChatScreenState extends State<ChatScreen> {
     //               'id': user.uid
     //             });
 
+
+    // TODO: make the userId dynamic
+    
+    var now = new DateTime.now().millisecondsSinceEpoch;
+    now = now ~/ 1000;
+    var firestoreTimestamp = Timestamp(now, 0);
+    
+    // TODO: update to current firestore spec
     reference.document().setData({
+      'chatId': widget.chatDocument.documentID,
+      'imageURL': imageUrl,
       'text': messageText,
-      'email': "arturbegyan98@gmail.com",
-      'imageUrl': imageUrl,
-      'senderName': "Artur",
-      // 'senderPhotoUrl': googleSignIn.currentUser.photoUrl,  
+      'timestamp': firestoreTimestamp,
+      'sender': {
+        'avatarURL': currentUser['avatarURL'],
+        'id': currentUser.documentID,
+        'name': currentUser['name']
+      }
     }
     );
 
     // analytics.logEvent(name: 'send_message');
   }
+
+
+  // TODO: check this code out, might help with the Loading... issues
+  // StreamBuilder<List<Content>> _getContentsList(BuildContext context) {
+  //   final BlocProvider blocProvider = BlocProvider.of(context);
+  //   int page = 1;
+  //   return StreamBuilder<List<Content>>(
+  //       stream: blocProvider.contentBloc.contents,
+  //       initialData: [],
+  //       builder: (context, snapshot) {
+  //         if (snapshot.data.isNotEmpty) {
+  //           return ListView.builder(itemBuilder: (context, index) {
+  //             if (index < snapshot.data.length) {
+  //               return ContentBox(content: snapshot.data.elementAt(index));
+  //             } else if (index / 5 == page) {
+  //               page++;
+  //               blocProvider.contentBloc.index.add(index);
+  //             }
+  //           });
+  //         } else {
+  //           return Center(
+  //             child: CircularProgressIndicator(),
+  //           );
+  //         }
+  //       });
+  // }
+
+
 
   // Future<Null> _ensureLoggedIn() async {
   //   GoogleSignInAccount signedInUser = googleSignIn.currentUser;
