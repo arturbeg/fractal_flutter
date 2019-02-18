@@ -45,19 +45,19 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: Text("Facebook Login"),
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(
-                Icons.exit_to_app,
-                color: Colors.white,
-              ),
-              onPressed: () => facebookLogin.isLoggedIn
-                  .then((isLoggedIn) => isLoggedIn ? _logout() : {}),
-            ),
-          ],
-        ),
+        // appBar: AppBar(
+        //   title: Text("Facebook Login"),
+        //   actions: <Widget>[
+        //     IconButton(
+        //       icon: Icon(
+        //         Icons.exit_to_app,
+        //         color: Colors.white,
+        //       ),
+        //       onPressed: () => facebookLogin.isLoggedIn
+        //           .then((isLoggedIn) => isLoggedIn ? _logout() : {}),
+        //     ),
+        //   ],
+        // ),
         body: Container(
           child: Center(
             child: isLoggedIn

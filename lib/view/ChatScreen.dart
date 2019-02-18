@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import './Profile.dart';
 
-class ChatScreen extends StatefulWidget {
+class ChatScreenAlternative extends StatefulWidget {
   final String name;
   final String imgurl;
-  ChatScreen(this.name, this.imgurl);
+  ChatScreenAlternative(this.name, this.imgurl);
   @override
   State<StatefulWidget> createState() => _chatState();
 }
 
-class _chatState extends State<ChatScreen> {
+class _chatState extends State<ChatScreenAlternative> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(

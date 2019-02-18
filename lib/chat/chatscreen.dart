@@ -8,12 +8,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import './messageslayout.dart';
 import '../auth_state.dart';
+import '../model/models.dart';
 
 
 
 class ChatScreen extends StatefulWidget {
   
-  final DocumentSnapshot chatDocument;
+  final ChatModel chatDocument;
   ChatScreen({this.chatDocument});
   
   @override
@@ -29,34 +30,104 @@ class ChatScreenState extends State<ChatScreen> {
       new TextEditingController();
   bool _isComposingMessage = false;
 
+  File imageFile;
+  String imageURL;
+
+
   // reference to the database in here
   final Firestore _db = Firestore.instance;
   final reference = Firestore.instance.collection('messages');
+
+  final ScrollController listScrollController = new ScrollController();
+  final FocusNode focusNode = new FocusNode();
 
 
   DocumentSnapshot currentUser;
 
   void initState() {
-
     super.initState();
     currentUser = AuthState.currentUser;
     print("THE CURRENT USER IS:");
     print(currentUser['name']);
-
+    // focusNode.addListener(onFocusChange);
   }
+
+  Future uploadFile() async {
+      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+      StorageReference reference = FirebaseStorage.instance.ref().child(fileName);
+      StorageUploadTask uploadTask = reference.putFile(imageFile);
+      StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
+      storageTaskSnapshot.ref.getDownloadURL().then((downloadUrl) {
+      imageURL = downloadUrl;
+      // setState(() {
+      //   onSendMessage(imageURL, 1);
+      // });
+    }, onError: (err) {
+      // setState(() {
+      //   isLoading = false;
+      // });
+      // Fluttertoast.showToast(msg: 'This file is not an image');
+      print("This file is not an image");
+    });
+  }
+
+  // TODO: implemnt upload file to the firebase storage
+  //   Future uploadFile() async {
+  //   String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+  //   StorageReference reference = FirebaseStorage.instance.ref().child(fileName);
+  //   StorageUploadTask uploadTask = reference.putFile(imageFile);
+  //   StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
+  //   storageTaskSnapshot.ref.getDownloadURL().then((downloadUrl) {
+  //     imageUrl = downloadUrl;
+  //     setState(() {
+  //       isLoading = false;
+  //       onSendMessage(imageUrl, 1);
+  //     });
+  //   }, onError: (err) {
+  //     setState(() {
+  //       isLoading = false;
+  //     });
+  //     Fluttertoast.showToast(msg: 'This file is not an image');
+  //   });
+  // }
+  // TODO: use to display timestamp in a nice way --> DateFormat 
+  // Container(
+  //                   child: Text(
+  //                     DateFormat('dd MMM kk:mm')
+  //                         .format(DateTime.fromMillisecondsSinceEpoch(int.parse(document['timestamp']))),
+  //                     style: TextStyle(color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
+  //                   ),
+  //                   margin: EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0),
+
+  // TODO: implement loading
+  //   Widget buildLoading() {
+  //   return Positioned(
+  //     child: isLoading
+  //         ? Container(
+  //             child: Center(
+  //               child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(themeColor)),
+  //             ),
+  //             color: Colors.white.withOpacity(0.8),
+  //           )
+  //         : Container(),
+  //   );
+  // }
 
 
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
         appBar: new AppBar(
-          title: new Text(widget.chatDocument['name']),
+          title: new Text(widget.chatDocument.name),
         ),
         body: new Container(
           child: new Column(
             children: <Widget>[
               new Flexible(
-                child: MessagesList(chatDocument: widget.chatDocument,)),
+                child: MessagesList(chatDocument: widget.chatDocument,)
+                
+                
+                ),
               new Divider(height: 1.0),
               new Container(
                 decoration:
@@ -64,7 +135,6 @@ class ChatScreenState extends State<ChatScreen> {
                 child: _buildTextComposer(),
               ),
               new Builder(builder: (BuildContext context) {
-                var _scaffoldContext = context;
                 return new Container(width: 0.0, height: 0.0);
               })
             ],
@@ -117,21 +187,32 @@ class ChatScreenState extends State<ChatScreen> {
                     ),
                     onPressed: () async {
                       // await _ensureLoggedIn();
-                      File imageFile = await ImagePicker.pickImage();
+                      File imageFile = await ImagePicker.pickImage(source: ImageSource.gallery);
                       int timestamp = new DateTime.now().millisecondsSinceEpoch;
                       StorageReference storageReference = FirebaseStorage
                           .instance
                           .ref()
                           .child("img_" + timestamp.toString() + ".jpg");
+                      
                       StorageUploadTask uploadTask =
                           storageReference.putFile(imageFile);
-                      // Uri downloadUrl = (await uploadTask.future).downloadUrl;
-                      // _sendMessage(
-                      //     messageText: null, imageUrl: downloadUrl.toString());
+
+                      StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete; 
+
+                      storageTaskSnapshot.ref.getDownloadURL().then(
+                        (downloadUrl) {
+                          print(downloadUrl);
+                          _sendMessage(
+                            messageText: null, imageUrl: downloadUrl.toString()
+                          );
+                        }
+                      );   
+
                     }),
               ),
               new Flexible(
                 child: new TextField(
+                  focusNode: focusNode,
                   controller: _textEditingController,
                   onChanged: (String messageText) {
                     setState(() {
@@ -156,7 +237,7 @@ class ChatScreenState extends State<ChatScreen> {
 
   Future<Null> _textMessageSubmitted(String text) async {
     _textEditingController.clear();
-
+    FocusScope.of(context).requestFocus(focusNode);
     setState(() {
       _isComposingMessage = false;
     });
@@ -167,32 +248,13 @@ class ChatScreenState extends State<ChatScreen> {
 
   void _sendMessage({String messageText, String imageUrl}) {
     
-    // reference.push().set({
-    //   'text': messageText,
-    //   'email': googleSignIn.currentUser.email,
-    //   'imageUrl': imageUrl,
-    //   'senderName': googleSignIn.currentUser.displayName,
-    //   'senderPhotoUrl': googleSignIn.currentUser.photoUrl,
-    // });
-
-    //  Firestore.instance
-    //             .collection('users')
-    //             .document(user.uid)
-    //             .setData({
-    //               'name': user.displayName,
-    //               'id': user.uid
-    //             });
-
-
-    // TODO: make the userId dynamic
-    
     var now = new DateTime.now().millisecondsSinceEpoch;
     now = now ~/ 1000;
     var firestoreTimestamp = Timestamp(now, 0);
     
     // TODO: update to current firestore spec
     reference.document().setData({
-      'chatId': widget.chatDocument.documentID,
+      'chatId': widget.chatDocument.id,
       'imageURL': imageUrl,
       'text': messageText,
       'timestamp': firestoreTimestamp,

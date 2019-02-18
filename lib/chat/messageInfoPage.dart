@@ -1,29 +1,31 @@
 import 'package:flutter/material.dart';
-// import '../view/ChatScreen.dart';
-import '../model/models.dart';
-import '../chat/chatscreen.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import './branchingPage.dart';
+import '../model/models.dart';
 import '../view/chatItem.dart';
-import '../auth_state.dart';
 
+class MessageInfoPage extends StatefulWidget {
 
-class chats extends StatefulWidget {
+  final DocumentSnapshot messageSnapshot;
+
+  MessageInfoPage({this.messageSnapshot});
+
   @override
-  State<StatefulWidget> createState() {
-    return new ChatState();
-  }
+  _MessageInfoPageState createState() => _MessageInfoPageState();
 }
 
-class ChatState extends State<chats> {
-
-  final joinedChats = Firestore.instance.collection('joinedChats').where(
-    'user.id', isEqualTo: AuthState.currentUser.documentID
-  ).snapshots();
-
+class _MessageInfoPageState extends State<MessageInfoPage> {
+  
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: joinedChats,
+    return new Scaffold(
+      appBar: AppBar(
+        title: Text("Message Subchats"),
+      ),
+      body: new StreamBuilder<QuerySnapshot>(
+      stream: Firestore.instance.collection('branchedChats')
+    .where('messageId', isEqualTo: widget.messageSnapshot.documentID).snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasError)
           return new Text('Error: ${snapshot.error}');
@@ -39,9 +41,7 @@ class ChatState extends State<chats> {
             );
         }
       },
+    )
     );
   }
-
 }
-
-

@@ -30,7 +30,7 @@ class ProfileView extends StatelessWidget {
           new SliverList(
             delegate: new SliverChildListDelegate(<Widget>[
               new ListTile(
-                title: new Text("Mute notifications"),
+                title: new Text("Mute notificationss"),
                 trailing: new Switch(
                   value: false,
                   onChanged: null,

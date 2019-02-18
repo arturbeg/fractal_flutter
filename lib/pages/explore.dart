@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 // import '../view/ChatScreen.dart';
-import '../model/chat_model.dart';
+import '../model/models.dart';
 import '../chat/chatscreen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../view/chatItem.dart';
@@ -38,7 +38,9 @@ class ExploreChatsList extends StatelessWidget {
           default:
             return new ListView(
               children: snapshot.data.documents.map((DocumentSnapshot document) {
-                return new ChatItem(chatDocument: document);
+                var chatDocument = ChatModel();
+                chatDocument.setChatModelFromDocumentSnapshot(document);
+                return new ChatItem(chatDocument: chatDocument);
               }).toList(),
             );
         }
