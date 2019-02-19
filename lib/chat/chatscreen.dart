@@ -252,7 +252,6 @@ class ChatScreenState extends State<ChatScreen> {
     now = now ~/ 1000;
     var firestoreTimestamp = Timestamp(now, 0);
     
-    // TODO: update to current firestore spec
     reference.document().setData({
       'chatId': widget.chatDocument.id,
       'imageURL': imageUrl,
@@ -262,7 +261,8 @@ class ChatScreenState extends State<ChatScreen> {
         'avatarURL': currentUser['avatarURL'],
         'id': currentUser.documentID,
         'name': currentUser['name']
-      }
+      },
+      'subchatsCount': 0
     }
     );
 

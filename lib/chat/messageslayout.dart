@@ -19,7 +19,7 @@ class MessagesList extends StatelessWidget {
               .collection('messages')
               .where('chatId', isEqualTo: chatDocument.id)
               .orderBy('timestamp', descending: true)
-              .limit(20)
+              // .limit(20)
               .snapshots(),
           builder:
               (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {

@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import './branchingPage.dart';
-
+import './messageInfoPage.dart';
+import '../auth_state.dart';
 
 class ChatMessageListItem extends StatelessWidget {
   final DocumentSnapshot messageSnapshot;
-  
-  // final Animation animation;
 
+  // final Animation animation;
   // ChatMessageListItem({this.animation});
   // String messageText;
   // String senderName;
@@ -21,11 +21,21 @@ class ChatMessageListItem extends StatelessWidget {
       onTap: () {
         // Navigate to Branching page
         Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
-          return new BranchingPage(messageSnapshot: messageSnapshot,);
+          return new BranchingPage(
+            messageSnapshot: messageSnapshot,
+          );
+        }));
+      },
+      onHorizontalDragEnd: (event) {
+        Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
+          return new MessageInfoPage(
+            messageSnapshot: messageSnapshot,
+          );
         }));
       },
       child: Row(
-        children: getReceivedMessageLayout(),
+        children: messageSnapshot['sender']['id'] == AuthState.currentUser.documentID ?    
+        getSentMessageLayout() : getReceivedMessageLayout()
       ),
     );
 
@@ -45,8 +55,8 @@ class ChatMessageListItem extends StatelessWidget {
           new Container(
               margin: const EdgeInsets.only(right: 8.0),
               child: new CircleAvatar(
-                backgroundImage: new NetworkImage(
-                    "https://scontent-lht6-1.xx.fbcdn.net/v/t1.0-9/48412969_2015019108574498_3302275035338637312_n.jpg?_nc_cat=102&_nc_ht=scontent-lht6-1.xx&oh=3bffb47321f5d462cfa175f5feed39be&oe=5CDF49EB"),
+                backgroundImage:
+                    new NetworkImage(messageSnapshot['sender']['avatarURL']),
               )),
         ],
       ),
@@ -69,6 +79,51 @@ class ChatMessageListItem extends StatelessWidget {
                   : new Text(messageSnapshot['text']))
         ],
       ))
+    ];
+  }
+
+  List<Widget> getSentMessageLayout() {
+    String subchatsCount = messageSnapshot['subchatsCount'].toString();
+    String subchatsCountLabel = messageSnapshot['subchatsCount'] > 1 ? subchatsCount + ' subchats' : subchatsCount + ' subchat';
+    return <Widget>[
+      new Expanded(
+        child: new Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: <Widget>[
+            new Text(messageSnapshot['sender']['name'],
+                style: new TextStyle(
+                    fontSize: 14.0,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold)),
+            new Container(
+                margin: const EdgeInsets.only(top: 5.0),
+                child: messageSnapshot['imageURL'] != null
+                    ? new Image.network(
+                        messageSnapshot['imageURL'],
+                        width: 250.0,
+                      )
+                    : new Text(messageSnapshot['text'])),
+          messageSnapshot['subchatsCount'] != 0 ?
+          new Text(subchatsCountLabel, style: TextStyle(
+            color: Colors.grey, fontSize: 10.0
+          ),) : null
+          ].where(
+            (c) => c != null
+          ).toList(),
+          
+        ),
+      ),
+      new Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: <Widget>[
+          new Container(
+              margin: const EdgeInsets.only(left: 8.0),
+              child: new CircleAvatar(
+                backgroundImage:
+                    new NetworkImage(messageSnapshot['sender']['avatarURL']),
+              )),
+        ],
+      ),
     ];
   }
 }
