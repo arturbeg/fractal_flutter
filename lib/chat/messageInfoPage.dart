@@ -17,6 +17,7 @@ class MessageInfoPage extends StatefulWidget {
 
 class _MessageInfoPageState extends State<MessageInfoPage> {
   
+
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
@@ -24,18 +25,18 @@ class _MessageInfoPageState extends State<MessageInfoPage> {
         title: Text("Message Subchats"),
       ),
       body: new StreamBuilder<QuerySnapshot>(
-      stream: Firestore.instance.collection('branchedChats')
-    .where('messageId', isEqualTo: widget.messageSnapshot.documentID).snapshots(),
+      stream: Firestore.instance.collection('chats') // TODO: change to chats collection
+    .where('parentMessageId', isEqualTo: widget.messageSnapshot.documentID).snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasError)
           return new Text('Error: ${snapshot.error}');
         switch (snapshot.connectionState) {
-          case ConnectionState.waiting: return new Text('Loading...');
+          case ConnectionState.waiting: return new Text(''); // Displaying no text instead of loading
           default:
             return new ListView(
               children: snapshot.data.documents.map((DocumentSnapshot document) {
                 var chatDocument = ChatModel();
-                chatDocument.setChatModelFromJoinedChatDocumentSnapshot(document);
+                chatDocument.setChatModelFromDocumentSnapshot(document);
                 return new ChatItem(chatDocument: chatDocument);
               }).toList(),
             );

@@ -64,7 +64,7 @@ class ChatMessageListItem extends StatelessWidget {
           child: new Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          new Text("Artur Begyan",
+          new Text(messageSnapshot['sender']['name'],
               style: new TextStyle(
                   fontSize: 14.0,
                   color: Colors.black,
@@ -119,8 +119,10 @@ class ChatMessageListItem extends StatelessWidget {
           new Container(
               margin: const EdgeInsets.only(left: 8.0),
               child: new CircleAvatar(
-                backgroundImage:
-                    new NetworkImage(messageSnapshot['sender']['avatarURL']),
+                backgroundImage: AssetImage('assets/default-avatar.png'),
+
+                // backgroundImage:
+                //     new NetworkImage(messageSnapshot['sender']['avatarURL']),
               )),
         ],
       ),

@@ -24,33 +24,17 @@ class ChatItem extends StatelessWidget {
       this.parentMessageSnapshot,
       this.heroTag = "defaultTag"});
 
-  Future<bool> _isChatJoined() async {
-    final QuerySnapshot result = await Firestore.instance
-        .collection('joinedChats')
-        .where('chatId', isEqualTo: chatDocument.id)
-        .where('user.id', isEqualTo: AuthState.currentUser.documentID)
-        .getDocuments();
+  // Future<bool> _isChatJoined() async {
+  //   final QuerySnapshot result = await Firestore.instance
+  //       .collection('joinedChats')
+  //       .where('chatId', isEqualTo: chatDocument.id)
+  //       .where('user.id', isEqualTo: AuthState.currentUser.documentID)
+  //       .getDocuments();
 
-    final List<DocumentSnapshot> documents = result.documents;
+  //   final List<DocumentSnapshot> documents = result.documents;
 
-    return documents.length > 0 ? true : false;
-  }
-
-  _isBranchCreated() async {
-    if (parentMessageSnapshot != null) {
-      final QuerySnapshot result = await Firestore.instance
-          .collection('branchedChats')
-          .where('chatId', isEqualTo: chatDocument.id)
-          .where('messageId', isEqualTo: parentMessageSnapshot.documentID)
-          .getDocuments();
-
-      final List<DocumentSnapshot> documents = result.documents;
-
-      return documents.length > 0 ? true : false;
-    } else {
-      return false;
-    }
-  }
+  //   return documents.length > 0 ? true : false;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -59,9 +43,9 @@ class ChatItem extends StatelessWidget {
       tag: heroTag + chatDocument.id.toString(),
       child: ListTile(
         leading: new CircleAvatar(
-          foregroundColor: Theme.of(context).accentColor,
-          backgroundColor: Colors.grey,
-          backgroundImage: new NetworkImage(chatDocument.avatarURL),
+          backgroundImage: AssetImage('assets/default-chat.png'),
+          backgroundColor: Colors.white,
+          // backgroundImage:  // new NetworkImage(chatDocument.avatarURL),
         ),
         title: new Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -82,7 +66,6 @@ class ChatItem extends StatelessWidget {
         subtitle: new Container(
             padding: const EdgeInsets.only(top: 5.0),
             // TODO: take into account that the message can also be an image
-
             child: StreamBuilder<QuerySnapshot>(
               stream: Firestore.instance
                   .collection('messages')
@@ -97,10 +80,24 @@ class ChatItem extends StatelessWidget {
                 if (snapshot.data != null) {
                   if (snapshot.data.documents.length > 0) {
                     print(snapshot.data.documents[0].data['text']);
-                    String lastMessage =
-                        snapshot.data.documents[0].data['text'].toString();
-                    return Text(lastMessage,
-                        style: TextStyle(color: Colors.grey, fontSize: 15.0));
+                    if (snapshot.data.documents[0].data['text'] == null) {
+                      String lastMessage = 'photo';
+                      return Row(children: <Widget>[
+                        new Icon(
+                          Icons.camera_alt,
+                          color: Colors.grey,
+                          size: 15.0,
+                        ),
+                        Text(lastMessage,
+                            style:
+                                TextStyle(color: Colors.grey, fontSize: 15.0))
+                      ]);
+                    } else {
+                      String lastMessage =
+                          snapshot.data.documents[0].data['text'].toString();
+                      return Text(lastMessage,
+                          style: TextStyle(color: Colors.grey, fontSize: 15.0));
+                    }
                   } else {
                     return Text("No messages yet");
                   }
@@ -110,88 +107,12 @@ class ChatItem extends StatelessWidget {
               },
             )),
         onTap: () {
-          _isChatJoined().then((isJoined) {
-            if (!isJoined) {
-              print("The chat will now be joined");
-              print(chatDocument.name);
-              final reference = Firestore.instance.collection('joinedChats');
-              reference.document().setData({
-                "about": chatDocument.about,
-                "avatarURL": chatDocument.avatarURL,
-                "chatId": chatDocument.id,
-                "chatTimestamp": chatDocument.getFirebaseTimestamp(),
-                "name": chatDocument.name,
-                "owner": chatDocument.owner.getChatOwnerModelMap(),
-                "timestamp": FieldValue.serverTimestamp(),
-                "user": {
-                  "id": AuthState.currentUser.documentID,
-                  "avatarURL": AuthState.currentUser.data['avatarURL'],
-                  "name": AuthState.currentUser.data['name']
-                }
-              });
-            }
-          });
-
-          if (isSubchat) {
-            // Scaffold.of(context).showSnackBar(snackBar);
-            // Create the entry in the branched chats - done
-            print("IT IS A SUBCHAT!!!");
-            _isBranchCreated().then((isCreated) {
-              print("INSIDE IS BRANCH CREATED");
-              print(isCreated);
-              if (!isCreated) {
-                print("The chat will now be branched");
-                final reference =
-                    Firestore.instance.collection('branchedChats');
-                reference.document().setData({
-                  "about": chatDocument.about,
-                  "avatarURL": chatDocument.avatarURL,
-                  "chatId": chatDocument.id,
-                  "chatTimestamp": chatDocument.getFirebaseTimestamp(),
-                  "name": chatDocument.name,
-                  "owner": chatDocument.owner.getChatOwnerModelMap(),
-                  "timestamp": FieldValue.serverTimestamp(),
-                  "messageId": parentMessageSnapshot.documentID
-                });
-              }
-            });
-            // Navigate to the info page for the message
-
-            Navigator.of(context)
-                .push(new MaterialPageRoute(builder: (context) {
-              return new MessageInfoPage(
-                messageSnapshot: parentMessageSnapshot,
-              );
-            }));
-          } else {
-              Navigator.push(context, new MaterialPageRoute(builder: (context) {
-                print(chatDocument.id);
-                return new ChatScreen(chatDocument: chatDocument);
-              }));
-            
-          }
+          Navigator.push(context, new MaterialPageRoute(builder: (context) {
+            print(chatDocument.id);
+            return new ChatScreen(chatDocument: chatDocument);
+          }));
         },
       ),
     );
   }
 }
-
-// new ListView(
-//               children: snapshot.data.documents.map((DocumentSnapshot document) {
-//                 return Text(
-//                         document['text'],
-//                         style: new TextStyle(fontWeight: FontWeight.bold),
-//                       );
-//               }).toList(),
-//             );
-
-// ListView.builder(
-//         itemCount: dummy.length,
-//         itemBuilder: (context, l) => new Column(
-//               children: <Widget>[
-//                 new Divider(
-//                   height: 10.0,
-//                 ),
-//                 new ExploreChatsList()
-//               ],
-//             ))

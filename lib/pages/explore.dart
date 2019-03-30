@@ -24,7 +24,10 @@ class ExploreState extends State<explore> {
 
 class ExploreChatsList extends StatelessWidget {
 
-  final exploreChatsStream = Firestore.instance.collection('chats').snapshots();
+  final exploreChatsStream = Firestore.instance.collection('chats')
+  .where('isSubchat', isEqualTo: false)
+  .orderBy('timestamp', descending: true)
+  .snapshots();
   // TODO: change the StreamBuilder implementation (circular progress instead of "Loading...")
   @override
   Widget build(BuildContext context) {
@@ -34,7 +37,7 @@ class ExploreChatsList extends StatelessWidget {
         if (snapshot.hasError)
           return new Text('Error: ${snapshot.error}');
         switch (snapshot.connectionState) {
-          case ConnectionState.waiting: return new Text('Loading...');
+          case ConnectionState.waiting: return new Text(''); // Not displaying Loading...
           default:
             return new ListView(
               children: snapshot.data.documents.map((DocumentSnapshot document) {

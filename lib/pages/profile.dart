@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../model/status_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../auth_state.dart';
 
 class profile extends StatefulWidget {
   DocumentSnapshot userDocument;
@@ -28,19 +29,19 @@ class _profileState extends State<profile> {
             width: 200.0,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
+              color: Colors.white,
               image: DecorationImage(
                 fit: BoxFit.fill,
-                image: NetworkImage(
-                    // TODO: have a default photo option in the app's assets
-                    //widget.userDocument['photoURL'],
-                    "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=2086732544736487&height=200&ext=1552668603&hash=AeStMhlsftogsw3o"),
+                image: AssetImage('assets/default-avatar.png')
+                // image: NetworkImage(
+                //     // TODO: have a default photo option in the app's assets
+                //     AuthState.currentUser['avatarURL']),
               ),
             ),
           ),
           SizedBox(height: 28.0),
           Text(
-            //"Logged in as: ${widget.userDocument['name']}",
-            "Artur Begyan",
+            AuthState.currentUser['name'],
             style: TextStyle(
               fontSize: 20.0,
             ),

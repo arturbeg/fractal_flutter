@@ -10,7 +10,7 @@ import './view/chatItem.dart';
 import './model/models.dart';
 import './chat/chatscreen.dart';
 import './chat/algolia.dart';
-
+import 'package:firebase_messaging/firebase_messaging.dart';
 // import './chat//chatscreen.dart';
 
 void main() {
@@ -31,14 +31,24 @@ class _LoginPageState extends State<LoginPage> {
   Icon _searchIcon = new Icon(Icons.search);
   String _searchText = "";
   List chatSearchResults = new List();
-  bool _isSearching = false;
+  bool _isSearching = false;  
   final TextEditingController _filter = new TextEditingController();
   Widget _appBarTitle = new Text('Fractal');
 
   var facebookLogin = FacebookLogin();
 
+  FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
+
+  @override
+  void initState() {
+    print("Initialising the app");
+    super.initState();
+  }     
+
   _LoginPageState() {
-    //TODO: check if the user is logged in, in every case
+    // TODO: check if the user is logged in, in every case
+    // TODO: once user is logged in
+  
   }
 
   Widget _buildSearchResults() {
@@ -132,6 +142,27 @@ class _LoginPageState extends State<LoginPage> {
           });
         }
       });
+
+         _firebaseMessaging.configure(
+      onMessage: (Map<String, dynamic> message) {
+        print(message);
+      },
+
+      onLaunch: (Map<String, dynamic> message) {
+        print(message);
+      },
+
+      onResume: (Map<String, dynamic> message) {
+        print(message);
+
+      }, 
+    );
+    _firebaseMessaging.getToken().then(
+      (token) {
+        print(token);
+      }
+    );
+
     } else {
       AuthState.instance.setUser(null);
     }
