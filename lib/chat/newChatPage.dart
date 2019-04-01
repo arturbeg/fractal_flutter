@@ -44,7 +44,7 @@ class _NewChatState extends State<NewChat> {
           "owner": {
             'id': AuthState.currentUser.documentID,
             'name': AuthState.currentUser['name'],
-            'avatarURL': AuthState.currentUser['avatarURL']
+            'facebookID': AuthState.currentUser['facebookID']
           },
           "timestamp": FieldValue.serverTimestamp(),
           "parentMessageId": widget.parentMessageSnapshot.documentID,
@@ -54,6 +54,7 @@ class _NewChatState extends State<NewChat> {
             'avatarURL': widget.parentMessageSnapshot.data['chat']['avatarURL'],
           },
           "isSubchat": true,
+          "lastMessageTimestamp": FieldValue.serverTimestamp()
         });
 
         Navigator.of(context)
@@ -63,7 +64,6 @@ class _NewChatState extends State<NewChat> {
           );
         }));
       } else {
-        
         final DocumentReference chatDocumentReference =
             await Firestore.instance.collection("chats").add({
           "about": _newChatAbout,
@@ -72,31 +72,31 @@ class _NewChatState extends State<NewChat> {
           "owner": {
             'id': AuthState.currentUser.documentID,
             'name': AuthState.currentUser['name'],
-            'avatarURL': AuthState.currentUser['avatarURL']
+            'facebookID': AuthState.currentUser['facebookID']
           },
           "timestamp": FieldValue.serverTimestamp(),
           "parentMessageId": "",
-          
           "parentChat": {
             'id': "",
             'name': "",
             'avatarURL': "",
           },
-          
           "isSubchat": false,
+          "lastMessageTimestamp": FieldValue.serverTimestamp()
         });
 
-        final chatDocument = await chatDocumentReference.get();
-        print(chatDocument['about']);
-        var document = ChatModel();
-        document.setChatModelFromDocumentSnapshot(chatDocument);
-
-        Navigator.of(context)
-            .pushReplacement(new MaterialPageRoute(builder: (context) {
+        chatDocumentReference.get().then((chatDocument) {
+          print("Got the newly created subchat");
           var document = ChatModel();
           document.setChatModelFromDocumentSnapshot(chatDocument);
-          return new ChatScreen(chatDocument: document);
-        }));
+
+          Navigator.of(context)
+              .pushReplacement(new MaterialPageRoute(builder: (context) {
+            var document = ChatModel();
+            document.setChatModelFromDocumentSnapshot(chatDocument);
+            return new ChatScreen(chatDocument: document);
+          }));
+        });
       }
     }
   }

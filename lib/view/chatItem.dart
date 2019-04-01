@@ -5,6 +5,8 @@ import '../auth_state.dart';
 import 'dart:core';
 import '../model/models.dart';
 import '../chat/messageInfoPage.dart';
+import 'package:timeago/timeago.dart' as timeago;
+
 
 class ChatItem extends StatelessWidget {
   // Can be a DocumentSnapshot, can also be a chat document retreived from Algolia
@@ -36,6 +38,18 @@ class ChatItem extends StatelessWidget {
   //   return documents.length > 0 ? true : false;
   // }
 
+  _getShortenedName(String name) {
+    if(name.length>20) {
+      return name.substring(0, 18) + '...';
+    } else {
+      return name;
+    }
+  }
+
+  // _getTimeAgo(date) {
+  //   final someTimeAgo = new DateTime.now().subtract(new Duration(minutes: 15));
+  // }
+
   @override
   Widget build(BuildContext context) {
     print(heroTag + chatDocument.id.toString());
@@ -43,7 +57,13 @@ class ChatItem extends StatelessWidget {
       tag: heroTag + chatDocument.id.toString(),
       child: ListTile(
         leading: new CircleAvatar(
-          backgroundImage: AssetImage('assets/default-chat.png'),
+          backgroundImage: chatDocument.avatarURL != ""
+                      ? NetworkImage(
+                          chatDocument.avatarURL,
+                        )
+                      : new AssetImage(
+                          'assets/default-chat.png',
+                        ),
           backgroundColor: Colors.white,
           // backgroundImage:  // new NetworkImage(chatDocument.avatarURL),
         ),
@@ -51,21 +71,19 @@ class ChatItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             new Text(
-              chatDocument.name,
+              _getShortenedName(chatDocument.name),
               style: new TextStyle(fontWeight: FontWeight.bold),
             ),
             new Text(
-              // TODO: sort out if the date and other stuff fit into the page
-              // chatDocument['timestamp'].toDate().toLocal().toString().substring(0, 11),
-              // do timeago
-              chatDocument.timestamp.toString().substring(0, 11),
+              // TODO: timeago
+              timeago.format(chatDocument.lastMessageTimestamp),
+              // chatDocument.lastMessageTimestamp.toString().substring(5, 11),
               style: new TextStyle(color: Colors.grey, fontSize: 14.0),
             ),
           ],
         ),
         subtitle: new Container(
             padding: const EdgeInsets.only(top: 5.0),
-            // TODO: take into account that the message can also be an image
             child: StreamBuilder<QuerySnapshot>(
               stream: Firestore.instance
                   .collection('messages')

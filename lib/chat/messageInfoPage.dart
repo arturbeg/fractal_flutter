@@ -25,11 +25,11 @@ class _MessageInfoPageState extends State<MessageInfoPage> {
         title: Text("Message Subchats"),
       ),
       body: new StreamBuilder<QuerySnapshot>(
-      stream: Firestore.instance.collection('chats') // TODO: change to chats collection
+      stream: Firestore.instance.collection('chats')
     .where('parentMessageId', isEqualTo: widget.messageSnapshot.documentID).snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasError)
-          return new Text('Error: ${snapshot.error}');
+          return new Text(''); // Do not display errors
         switch (snapshot.connectionState) {
           case ConnectionState.waiting: return new Text(''); // Displaying no text instead of loading
           default:

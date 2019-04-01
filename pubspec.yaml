@@ -29,6 +29,10 @@ dependencies:
   algolia: ^0.1.4
   timeago: ^2.0.10
   firebase_messaging: ^3.0.1
+  flutter_signin_button: ^0.2.8
+  flutter_linkify: ^2.1.0
+  url_launcher: ^5.0.2
+
   loadmore: 
 
   

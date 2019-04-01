@@ -26,7 +26,8 @@ class ExploreChatsList extends StatelessWidget {
 
   final exploreChatsStream = Firestore.instance.collection('chats')
   .where('isSubchat', isEqualTo: false)
-  .orderBy('timestamp', descending: true)
+  .orderBy('lastMessageTimestamp', descending: true)
+  .limit(80) // later will have pagination
   .snapshots();
   // TODO: change the StreamBuilder implementation (circular progress instead of "Loading...")
   @override

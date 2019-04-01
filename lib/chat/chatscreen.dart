@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import './messageslayout.dart';
+import './aboutChat.dart';
 import '../auth_state.dart';
 import '../model/models.dart';
 
@@ -95,12 +96,13 @@ class ChatScreenState extends State<ChatScreen> {
       "timestamp": FieldValue.serverTimestamp(),
       "user": {
         "id": AuthState.currentUser.documentID,
-        "avatarURL": AuthState.currentUser.data['avatarURL'],
+        "facebookID": AuthState.currentUser.data['facebookID'],
         "name": AuthState.currentUser.data['name']
       },
       "parentMessageId": widget.chatDocument.parentMessageId,
       "parentChat": widget.chatDocument.parentChat.getParentChatModelMap(),
       "isSubchat": widget.chatDocument.isSubchat,
+      "lastMessageTimestamp": FieldValue.serverTimestamp()
     });
 
     // TODO: check if the action was actually successful, otherwise there would be duplicated
@@ -132,7 +134,14 @@ class ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return new Scaffold(
         appBar: new AppBar(
-          title: new Text(widget.chatDocument.name),
+          title: new GestureDetector(
+            onTap: () {
+              Navigator.push(context, new MaterialPageRoute(builder: (context) {
+                return new ChatView(widget.chatDocument);
+              }));
+            },
+            child: new Text(widget.chatDocument.name),
+          ),
           actions: <Widget>[
             IconButton(
               icon: chatJoined
@@ -295,7 +304,7 @@ class ChatScreenState extends State<ChatScreen> {
         'text': messageText,
         'timestamp': firestoreTimestamp,
         'sender': {
-          'avatarURL': currentUser['avatarURL'],
+          'facebookID': currentUser['facebookID'],
           'id': currentUser.documentID,
           'name': currentUser['name']
         },

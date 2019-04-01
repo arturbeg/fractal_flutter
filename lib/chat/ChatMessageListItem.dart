@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import './branchingPage.dart';
 import './messageInfoPage.dart';
 import '../auth_state.dart';
+import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ChatMessageListItem extends StatelessWidget {
   final DocumentSnapshot messageSnapshot;
@@ -18,7 +20,7 @@ class ChatMessageListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new GestureDetector(
-      onTap: () {
+      onDoubleTap: () {
         // Navigate to Branching page
         Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
           return new BranchingPage(
@@ -26,17 +28,28 @@ class ChatMessageListItem extends StatelessWidget {
           );
         }));
       },
-      onHorizontalDragEnd: (event) {
+      onLongPress: () {
         Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
-          return new MessageInfoPage(
+          return new BranchingPage(
             messageSnapshot: messageSnapshot,
           );
         }));
       },
+      onPanUpdate: (details) {
+        if (details.delta.dx < 0) {
+          print("Dragging in +X direction");
+          Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
+            return new MessageInfoPage(
+              messageSnapshot: messageSnapshot,
+            );
+          }));
+        }
+      },
       child: Row(
-        children: messageSnapshot['sender']['id'] == AuthState.currentUser.documentID ?    
-        getSentMessageLayout() : getReceivedMessageLayout()
-      ),
+          children: messageSnapshot['sender']['id'] ==
+                  AuthState.currentUser.documentID
+              ? getSentMessageLayout()
+              : getReceivedMessageLayout()),
     );
 
     // return new SizeTransition(
@@ -55,8 +68,9 @@ class ChatMessageListItem extends StatelessWidget {
           new Container(
               margin: const EdgeInsets.only(right: 8.0),
               child: new CircleAvatar(
-                backgroundImage:
-                    new NetworkImage(messageSnapshot['sender']['avatarURL']),
+                backgroundImage: new NetworkImage(
+                    'https://graph.facebook.com/${messageSnapshot['sender']['facebookID']}/picture?height=500'),
+                //AssetImage('assets/default-avatar.png'),
               )),
         ],
       ),
@@ -76,7 +90,15 @@ class ChatMessageListItem extends StatelessWidget {
                       messageSnapshot['imageURL'],
                       width: 250.0,
                     )
-                  : new Text(messageSnapshot['text']))
+                  : new Linkify(
+                      onOpen: (link) async {
+                        if (await canLaunch(link.url)) {
+                          await launch(link.url);
+                        } else {
+                          throw 'Could not launch $link';
+                        }
+                      },
+                      text: messageSnapshot['text']))
         ],
       ))
     ];
@@ -84,7 +106,9 @@ class ChatMessageListItem extends StatelessWidget {
 
   List<Widget> getSentMessageLayout() {
     String subchatsCount = messageSnapshot['subchatsCount'].toString();
-    String subchatsCountLabel = messageSnapshot['subchatsCount'] > 1 ? subchatsCount + ' subchats' : subchatsCount + ' subchat';
+    String subchatsCountLabel = messageSnapshot['subchatsCount'] > 1
+        ? subchatsCount + ' subchats'
+        : subchatsCount + ' subchat';
     return <Widget>[
       new Expanded(
         child: new Column(
@@ -102,15 +126,22 @@ class ChatMessageListItem extends StatelessWidget {
                         messageSnapshot['imageURL'],
                         width: 250.0,
                       )
-                    : new Text(messageSnapshot['text'])),
-          messageSnapshot['subchatsCount'] != 0 ?
-          new Text(subchatsCountLabel, style: TextStyle(
-            color: Colors.grey, fontSize: 10.0
-          ),) : null
-          ].where(
-            (c) => c != null
-          ).toList(),
-          
+                    : new Linkify(
+                        onOpen: (link) async {
+                          if (await canLaunch(link.url)) {
+                            await launch(link.url);
+                          } else {
+                            throw 'Could not launch $link';
+                          }
+                        },
+                        text: messageSnapshot['text'])),
+            messageSnapshot['subchatsCount'] != 0
+                ? new Text(
+                    subchatsCountLabel,
+                    style: TextStyle(color: Colors.grey, fontSize: 10.0),
+                  )
+                : null
+          ].where((c) => c != null).toList(),
         ),
       ),
       new Column(
@@ -119,10 +150,9 @@ class ChatMessageListItem extends StatelessWidget {
           new Container(
               margin: const EdgeInsets.only(left: 8.0),
               child: new CircleAvatar(
-                backgroundImage: AssetImage('assets/default-avatar.png'),
-
-                // backgroundImage:
-                //     new NetworkImage(messageSnapshot['sender']['avatarURL']),
+                backgroundImage: new NetworkImage(
+                    'https://graph.facebook.com/${messageSnapshot['sender']['facebookID']}/picture?height=500'),
+                //AssetImage('assets/default-avatar.png'),
               )),
         ],
       ),

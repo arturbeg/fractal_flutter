@@ -12,6 +12,8 @@ class ChatModel {
   var parentChat; // ParentChatModel
   var isSubchat;
   var parentMessageId;
+  var lastMessageTimestamp;
+  var user; // only related to the joinedChat case
 
   getFirebaseTimestamp() {
     var millisecondsSinceEpoch = timestamp.millisecondsSinceEpoch;
@@ -27,19 +29,27 @@ class ChatModel {
     // lastMessage = ChatLastMessageModel(imageURL: joinedChatDocument['lastMessage']['imageURL'], text: joinedChatDocument['lastMessage']['text']);
     name = joinedChatDocument['name'];
     owner = ChatOwnerModel(
-        avatarURL: joinedChatDocument['owner']['avatarURL'],
+        facebookID: joinedChatDocument['owner']['facebookID'],
         id: joinedChatDocument['owner']['id'],
         name: joinedChatDocument['owner']['name']);
     timestamp = joinedChatDocument['chatTimestamp'].toDate();
+    lastMessageTimestamp = joinedChatDocument['lastMessageTimestamp'].toDate();
 
-
-    parentChat = ParentChatModel(avatarURL: joinedChatDocument['parentChat']['avatarURL'],
-                                 id: joinedChatDocument['parentChat']['id'],
-                                 name: joinedChatDocument['parentChat']['name'],
+    parentChat = ParentChatModel(
+      avatarURL: joinedChatDocument['parentChat']['avatarURL'],
+      id: joinedChatDocument['parentChat']['id'],
+      name: joinedChatDocument['parentChat']['name'],
     );
 
-    parentMessageId = joinedChatDocument['parentMessageId'];
+    user = ChatOwnerModel(
+        facebookID: joinedChatDocument['user']['facebookID'],
+        id: joinedChatDocument['user']['id'],
+        name: joinedChatDocument['user']['name']);
     
+
+    parentMessageId = joinedChatDocument['parentMessageId'];
+
+
   }
 
   setChatModelFromDocumentSnapshot(DocumentSnapshot chatDocument) {
@@ -48,15 +58,18 @@ class ChatModel {
     avatarURL = chatDocument['avatarURL'];
     name = chatDocument['name'];
     owner = ChatOwnerModel(
-        avatarURL: chatDocument['owner']['avatarURL'],
+        facebookID: chatDocument['owner']['facebookID'],
         id: chatDocument['owner']['id'],
         name: chatDocument['owner']['name']);
 
     timestamp = chatDocument['timestamp'].toDate();
 
-    parentChat = ParentChatModel(avatarURL: chatDocument['parentChat']['avatarURL'],
-                                 id: chatDocument['parentChat']['id'],
-                                 name: chatDocument['parentChat']['name'],
+    lastMessageTimestamp = chatDocument['lastMessageTimestamp'].toDate();
+
+    parentChat = ParentChatModel(
+      avatarURL: chatDocument['parentChat']['avatarURL'],
+      id: chatDocument['parentChat']['id'],
+      name: chatDocument['parentChat']['name'],
     );
 
     parentMessageId = chatDocument['parentMessageId'];
@@ -69,12 +82,26 @@ class ChatModel {
     avatarURL = chatAlgoliaDocument['avatarURL'];
     name = chatAlgoliaDocument['name'];
     owner = ChatOwnerModel(
-        avatarURL: chatAlgoliaDocument['owner']['avatarURL'],
+        facebookID: chatAlgoliaDocument['owner']['facebookID'],
         id: chatAlgoliaDocument['owner']['id'],
         name: chatAlgoliaDocument['owner']['name']);
 
+    parentChat = ParentChatModel(
+      avatarURL: chatAlgoliaDocument['parentChat']['avatarURL'],
+      id: chatAlgoliaDocument['parentChat']['id'],
+      name: chatAlgoliaDocument['parentChat']['name'],
+    );
+
+    parentMessageId = chatAlgoliaDocument['parentMessageId'];
+
     final millisecondsSinceEpoch =
         chatAlgoliaDocument['timestamp']['_seconds'] * 1000;
+
+    final millisecondsSinceEpochLastMessage = 
+      chatAlgoliaDocument['lastMessageTimestamp']['_seconds'] * 1000;
+
+    lastMessageTimestamp = DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpochLastMessage); 
+
     timestamp = DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch);
   }
 }
@@ -97,14 +124,14 @@ class ChatModel {
 // }
 
 class ChatOwnerModel {
-  final String avatarURL;
+  final String facebookID;
   final String id;
   final String name;
 
-  ChatOwnerModel({this.avatarURL, this.id, this.name});
+  ChatOwnerModel({this.facebookID, this.id, this.name});
 
   getChatOwnerModelMap() {
-    final map = {'avatarURL': avatarURL, 'id': id, 'name': name};
+    final map = {'facebookID': facebookID, 'id': id, 'name': name};
 
     return map;
   }

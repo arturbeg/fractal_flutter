@@ -32,10 +32,9 @@ class _profileState extends State<profile> {
               color: Colors.white,
               image: DecorationImage(
                 fit: BoxFit.fill,
-                image: AssetImage('assets/default-avatar.png')
-                // image: NetworkImage(
-                //     // TODO: have a default photo option in the app's assets
-                //     AuthState.currentUser['avatarURL']),
+                image: NetworkImage(AuthState.facebookGraphProfileUrl), 
+                //TODO: have a default photo option in the app's assets
+                //AssetImage('assets/default-avatar.png')
               ),
             ),
           ),
