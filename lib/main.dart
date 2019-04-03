@@ -13,14 +13,14 @@ import './chat/algolia.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 // import './chat//chatscreen.dart';
 
-Widget getErrorWidget(BuildContext context, FlutterErrorDetails error) {
-  return Center(
-    child: Text(
-      "", // TODO: short term cheating Error Appeared
-      style: Theme.of(context).textTheme.title.copyWith(color: Colors.white),
-    ),
-  );
-}
+// Widget getErrorWidget(BuildContext context, FlutterErrorDetails error) {
+//   return Center(
+//     child: Text(
+//       "", // TODO: short term cheating Error Appeared
+//       style: Theme.of(context).textTheme.title.copyWith(color: Colors.white),
+//     ),
+//   );
+// }
 
 void main() {
   runApp(LoginPage());
@@ -172,9 +172,9 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     
-    ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
-      return getErrorWidget(context, errorDetails);
-    };
+    // ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
+    //   return getErrorWidget(context, errorDetails);
+    // };
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,

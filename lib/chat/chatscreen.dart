@@ -8,11 +8,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import './messageslayout.dart';
 import './aboutChat.dart';
+import './editChatPage.dart';
 import '../auth_state.dart';
 import '../model/models.dart';
+import '../auth_state.dart';
 
 class ChatScreen extends StatefulWidget {
-  final ChatModel chatDocument;
+  ChatModel chatDocument; // not a final because can change through the edit
   ChatScreen({this.chatDocument});
 
   @override
@@ -29,6 +31,7 @@ class ChatScreenState extends State<ChatScreen> {
   File imageFile;
   String imageURL;
   bool chatJoined = false;
+  bool isChatOwner = false;
 
   // reference to the database in here
   final Firestore _db = Firestore.instance;
@@ -51,6 +54,8 @@ class ChatScreenState extends State<ChatScreen> {
         chatJoined = isJoined;
       });
     });
+
+    _checkUserIsChatOwner();
   }
 
   Future<bool> _isChatJoined() async {
@@ -130,6 +135,69 @@ class ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  _handleEdit() async {
+    final result =
+        await Navigator.push(context, new MaterialPageRoute(builder: (context) {
+      return new EditChat(
+        chatDocument: widget.chatDocument,
+      );
+    }));
+
+    if (result != null) { // means that the user didnt edit anything and just pressed the back button
+      setState(() {
+        widget.chatDocument = result;
+      });
+    }
+  }
+
+  _buildAppBarActions() {
+    if (isChatOwner) {
+      return <Widget>[
+        IconButton(
+          icon: chatJoined ? Icon(Icons.bookmark) : Icon(Icons.bookmark_border),
+          onPressed: () {
+            print("Button pressed");
+            if (!chatJoined) {
+              _joinChat();
+            } else {
+              _leaveChat();
+            }
+          },
+        ),
+        IconButton(
+          icon: Icon(Icons.edit),
+          onPressed: () {
+            print("Wanna edit?");
+            _handleEdit();
+          },
+        ),
+      ];
+    } else {
+      return <Widget>[
+        IconButton(
+          icon: chatJoined ? Icon(Icons.bookmark) : Icon(Icons.bookmark_border),
+          onPressed: () {
+            print("Button pressed");
+            if (!chatJoined) {
+              _joinChat();
+            } else {
+              _leaveChat();
+            }
+          },
+        )
+      ];
+    }
+  }
+
+  _checkUserIsChatOwner() {
+    if (widget.chatDocument.owner.getChatOwnerModelMap()['id'] ==
+        AuthState.currentUser.documentID) {
+      setState(() {
+        isChatOwner = true;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
@@ -142,21 +210,7 @@ class ChatScreenState extends State<ChatScreen> {
             },
             child: new Text(widget.chatDocument.name),
           ),
-          actions: <Widget>[
-            IconButton(
-              icon: chatJoined
-                  ? Icon(Icons.bookmark)
-                  : Icon(Icons.bookmark_border),
-              onPressed: () {
-                print("Button pressed");
-                if (!chatJoined) {
-                  _joinChat();
-                } else {
-                  _leaveChat();
-                }
-              },
-            ),
-          ],
+          actions: _buildAppBarActions(),
         ),
         body: new Container(
           child: new Column(
@@ -221,6 +275,7 @@ class ChatScreenState extends State<ChatScreen> {
                     icon: new Icon(
                       Icons.photo_camera,
                       color: Theme.of(context).accentColor,
+                      size: 32.0,
                     ),
                     onPressed: () async {
                       // await _ensureLoggedIn();

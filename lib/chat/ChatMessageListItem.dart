@@ -69,7 +69,7 @@ class ChatMessageListItem extends StatelessWidget {
               margin: const EdgeInsets.only(right: 8.0),
               child: new CircleAvatar(
                 backgroundImage: new NetworkImage(
-                    'https://graph.facebook.com/${messageSnapshot['sender']['facebookID']}/picture?height=500'),
+                    'https://graph.facebook.com/${messageSnapshot['sender']['facebookID']}/picture?height=80'),
                 //AssetImage('assets/default-avatar.png'),
               )),
         ],
@@ -88,7 +88,7 @@ class ChatMessageListItem extends StatelessWidget {
               child: messageSnapshot['imageURL'] != null
                   ? new Image.network(
                       messageSnapshot['imageURL'],
-                      width: 250.0,
+                      height: 100.0,
                     )
                   : new Linkify(
                       onOpen: (link) async {
@@ -124,7 +124,7 @@ class ChatMessageListItem extends StatelessWidget {
                 child: messageSnapshot['imageURL'] != null
                     ? new Image.network(
                         messageSnapshot['imageURL'],
-                        width: 250.0,
+                        width: 150.0,
                       )
                     : new Linkify(
                         onOpen: (link) async {
@@ -134,7 +134,11 @@ class ChatMessageListItem extends StatelessWidget {
                             throw 'Could not launch $link';
                           }
                         },
-                        text: messageSnapshot['text'])),
+                        text: messageSnapshot['text'],
+                        style: TextStyle(
+                          fontSize: 16.0,
+                          color: Colors.black
+                        ),)),
             messageSnapshot['subchatsCount'] != 0
                 ? new Text(
                     subchatsCountLabel,
@@ -151,7 +155,7 @@ class ChatMessageListItem extends StatelessWidget {
               margin: const EdgeInsets.only(left: 8.0),
               child: new CircleAvatar(
                 backgroundImage: new NetworkImage(
-                    'https://graph.facebook.com/${messageSnapshot['sender']['facebookID']}/picture?height=500'),
+                    'https://graph.facebook.com/${messageSnapshot['sender']['facebookID']}/picture?height=80'),
                 //AssetImage('assets/default-avatar.png'),
               )),
         ],

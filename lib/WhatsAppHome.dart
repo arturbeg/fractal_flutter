@@ -26,7 +26,7 @@ class _WhatsAppHomeState extends State<WhatsAppHome>
   ];
 
   _onItemTapped(int index) {
-    print("Tap tap");
+    // print("Tap tap");
     print(index);
 
     setState(() {
