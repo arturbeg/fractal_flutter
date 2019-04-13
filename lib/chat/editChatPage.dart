@@ -57,7 +57,7 @@ class _EditChatState extends State<EditChat> {
 
         Navigator.of(context).pop(widget.chatDocument);
       }).catchError((e) {
-        print(e);
+        //print(e);
       });
     }
   }
@@ -113,7 +113,7 @@ class _EditChatState extends State<EditChat> {
                             storageTaskSnapshot.ref
                                 .getDownloadURL()
                                 .then((downloadUrl) {
-                              print(downloadUrl);
+                              //print(downloadUrl);
                               setState(() {
                                 _newChatAvatarURL = downloadUrl;
                                 avatarUploaded = true;
@@ -132,7 +132,7 @@ class _EditChatState extends State<EditChat> {
                           return input.length < 1 ? "Provide a name" : null;
                         },
                         onSaved: (input) {
-                          print(input);
+                          //print(input);
                           _newChatName = input;
                         },
                       ),

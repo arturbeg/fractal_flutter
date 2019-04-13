@@ -8,10 +8,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import './messageslayout.dart';
 import './aboutChat.dart';
+import './chatDetail.dart';
 import './editChatPage.dart';
 import '../auth_state.dart';
 import '../model/models.dart';
 import '../auth_state.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class ChatScreen extends StatefulWidget {
   ChatModel chatDocument; // not a final because can change through the edit
@@ -27,7 +29,7 @@ class ChatScreenState extends State<ChatScreen> {
   final TextEditingController _textEditingController =
       new TextEditingController();
   bool _isComposingMessage = false;
-
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
   File imageFile;
   String imageURL;
   bool chatJoined = false;
@@ -46,8 +48,8 @@ class ChatScreenState extends State<ChatScreen> {
     super.initState();
 
     currentUser = AuthState.currentUser;
-    print("THE CURRENT USER IS:");
-    print(currentUser['name']);
+    //print("THE CURRENT USER IS:");
+    //print(currentUser['name']);
 
     _isChatJoined().then((isJoined) {
       setState(() {
@@ -56,6 +58,49 @@ class ChatScreenState extends State<ChatScreen> {
     });
 
     _checkUserIsChatOwner();
+
+    _firebaseMessaging.configure(
+      onMessage: (Map<String, dynamic> message) async {},
+      onLaunch: (Map<String, dynamic> message) async {
+        final data = message['data'];
+        Firestore.instance
+            .collection("chats")
+            .document(data['chatId'])
+            .get()
+            .then((chatDocument) {
+          print("Chat Id");
+          print(chatDocument.documentID);
+          var document = ChatModel();
+          document.setChatModelFromDocumentSnapshot(chatDocument);
+
+          Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
+            var document = ChatModel();
+            document.setChatModelFromDocumentSnapshot(chatDocument);
+            return new ChatScreen(chatDocument: document);
+          }));
+        });
+      },
+      onResume: (Map<String, dynamic> message) async {
+        final data = message['data'];
+        print(data['chatId']);
+        Firestore.instance
+            .collection("chats")
+            .document(data['chatId'])
+            .get()
+            .then((chatDocument) {
+          print("Chat Id");
+          print(chatDocument.documentID);
+          var document = ChatModel();
+          document.setChatModelFromDocumentSnapshot(chatDocument);
+
+          Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
+            var document = ChatModel();
+            document.setChatModelFromDocumentSnapshot(chatDocument);
+            return new ChatScreen(chatDocument: document);
+          }));
+        });
+      },
+    );
   }
 
   Future<bool> _isChatJoined() async {
@@ -80,6 +125,7 @@ class ChatScreenState extends State<ChatScreen> {
         .then((snapshot) {
       for (DocumentSnapshot ds in snapshot.documents) {
         ds.reference.delete();
+        _firebaseMessaging.unsubscribeFromTopic(widget.chatDocument.id);
       }
     });
 
@@ -107,8 +153,11 @@ class ChatScreenState extends State<ChatScreen> {
       "parentMessageId": widget.chatDocument.parentMessageId,
       "parentChat": widget.chatDocument.parentChat.getParentChatModelMap(),
       "isSubchat": widget.chatDocument.isSubchat,
-      "lastMessageTimestamp": FieldValue.serverTimestamp()
+      "lastMessageTimestamp": FieldValue.serverTimestamp(),
+      "url": widget.chatDocument.url
     });
+
+    _firebaseMessaging.subscribeToTopic(widget.chatDocument.id);
 
     // TODO: check if the action was actually successful, otherwise there would be duplicated
     setState(() {
@@ -131,7 +180,7 @@ class ChatScreenState extends State<ChatScreen> {
       //   isLoading = false;
       // });
       // Fluttertoast.showToast(msg: 'This file is not an image');
-      print("This file is not an image");
+      //print("This file is not an image");
     });
   }
 
@@ -143,7 +192,8 @@ class ChatScreenState extends State<ChatScreen> {
       );
     }));
 
-    if (result != null) { // means that the user didnt edit anything and just pressed the back button
+    if (result != null) {
+      // means that the user didnt edit anything and just pressed the back button
       setState(() {
         widget.chatDocument = result;
       });
@@ -156,7 +206,7 @@ class ChatScreenState extends State<ChatScreen> {
         IconButton(
           icon: chatJoined ? Icon(Icons.bookmark) : Icon(Icons.bookmark_border),
           onPressed: () {
-            print("Button pressed");
+            //print("Button pressed");
             if (!chatJoined) {
               _joinChat();
             } else {
@@ -167,7 +217,7 @@ class ChatScreenState extends State<ChatScreen> {
         IconButton(
           icon: Icon(Icons.edit),
           onPressed: () {
-            print("Wanna edit?");
+            //print("Wanna edit?");
             _handleEdit();
           },
         ),
@@ -177,7 +227,7 @@ class ChatScreenState extends State<ChatScreen> {
         IconButton(
           icon: chatJoined ? Icon(Icons.bookmark) : Icon(Icons.bookmark_border),
           onPressed: () {
-            print("Button pressed");
+            //print("Button pressed");
             if (!chatJoined) {
               _joinChat();
             } else {
@@ -205,7 +255,9 @@ class ChatScreenState extends State<ChatScreen> {
           title: new GestureDetector(
             onTap: () {
               Navigator.push(context, new MaterialPageRoute(builder: (context) {
-                return new ChatView(widget.chatDocument);
+                return new DetailPage(
+                  chatDocument: widget.chatDocument,
+                );
               }));
             },
             child: new Text(widget.chatDocument.name),
@@ -296,7 +348,7 @@ class ChatScreenState extends State<ChatScreen> {
                       storageTaskSnapshot.ref
                           .getDownloadURL()
                           .then((downloadUrl) {
-                        print(downloadUrl);
+                        //print(downloadUrl);
                         _sendMessage(
                             messageText: null,
                             imageUrl: downloadUrl.toString());
@@ -342,7 +394,7 @@ class ChatScreenState extends State<ChatScreen> {
 
   void _sendMessage({String messageText, String imageUrl}) {
     if (imageUrl == null && messageText.trim().length == 0) {
-      print("Not sending anything");
+      //print("Not sending anything");
     } else {
       var now = new DateTime.now().millisecondsSinceEpoch;
       now = now ~/ 1000;
@@ -365,6 +417,9 @@ class ChatScreenState extends State<ChatScreen> {
         },
         'subchatsCount': 0
       });
+
+      // send the cloud message notification
+
     }
   }
 }

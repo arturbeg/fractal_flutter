@@ -39,11 +39,12 @@ class ChatItem extends StatelessWidget {
   // }
 
   _getShortenedName(String name) {
-    if(name.length>20) {
-      return name.substring(0, 18) + '...';
-    } else {
-      return name;
-    }
+    // if(name.length>20) {
+    //   return name.substring(0, 18) + '...';
+    // } else {
+    //   return name;
+    // }
+    return name;
   }
 
   // _getTimeAgo(date) {
@@ -52,7 +53,7 @@ class ChatItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(heroTag + chatDocument.id.toString());
+    //print(heroTag + chatDocument.id.toString());
     return Hero(
       tag: heroTag + chatDocument.id.toString(),
       child: ListTile(
@@ -70,16 +71,18 @@ class ChatItem extends StatelessWidget {
         title: new Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            new Text(
+            new Flexible(
+              child: new Text(
               _getShortenedName(chatDocument.name),
               style: new TextStyle(fontWeight: FontWeight.bold),
             ),
-            new Text(
-              // TODO: timeago
-              timeago.format(chatDocument.lastMessageTimestamp),
-              // chatDocument.lastMessageTimestamp.toString().substring(5, 11),
-              style: new TextStyle(color: Colors.grey, fontSize: 14.0),
             ),
+            // new Text(
+            //   // TODO: timeago
+            //   timeago.format(chatDocument.lastMessageTimestamp),
+            //   // chatDocument.lastMessageTimestamp.toString().substring(5, 11),
+            //   style: new TextStyle(color: Colors.grey, fontSize: 14.0),
+            // ),
           ],
         ),
         subtitle: new Container(
@@ -97,7 +100,7 @@ class ChatItem extends StatelessWidget {
                 }
                 if (snapshot.data != null) {
                   if (snapshot.data.documents.length > 0) {
-                    print(snapshot.data.documents[0].data['text']);
+                    //print(snapshot.data.documents[0].data['text']);
                     if (snapshot.data.documents[0].data['text'] == null) {
                       String lastMessage = 'photo';
                       return Row(children: <Widget>[
@@ -126,7 +129,7 @@ class ChatItem extends StatelessWidget {
             )),
         onTap: () {
           Navigator.push(context, new MaterialPageRoute(builder: (context) {
-            print(chatDocument.id);
+            //print(chatDocument.id);
             return new ChatScreen(chatDocument: chatDocument);
           }));
         },

@@ -17,8 +17,8 @@ class AlgoliaApplication {
     AlgoliaQuerySnapshot snapshots = await searchResults.getObjects();
     
     // Checking if has [AlgoliaQuerySnapshot]
-    print('\n\n');
-    print('Hits count: ${snapshots.nbHits}');
+    //print('\n\n');
+    //print('Hits count: ${snapshots.nbHits}');
 
     // I can make changes to the data at the async stage
     return snapshots;

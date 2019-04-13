@@ -11,6 +11,7 @@ import './model/models.dart';
 import './chat/chatscreen.dart';
 import './chat/algolia.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import './model/message.dart';
 // import './chat//chatscreen.dart';
 
 // Widget getErrorWidget(BuildContext context, FlutterErrorDetails error) {
@@ -48,11 +49,60 @@ class _LoginPageState extends State<LoginPage> {
   var facebookLogin = FacebookLogin();
 
   FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
+  final List<Message> messages = [];
 
   @override
   void initState() {
-    print("Initialising the app");
     super.initState();
+
+    _firebaseMessaging.requestNotificationPermissions(
+        const IosNotificationSettings(sound: true, badge: true, alert: true));
+
+    _firebaseMessaging.configure(
+
+      onMessage: (Map<String, dynamic> message) async {},
+
+      onLaunch: (Map<String, dynamic> message) async {
+        final data = message['data'];
+        Firestore.instance
+            .collection("chats")
+            .document(data['chatId'])
+            .get()
+            .then((chatDocument) {
+          print("Chat Id");
+          print(chatDocument.documentID);
+          var document = ChatModel();
+          document.setChatModelFromDocumentSnapshot(chatDocument);
+
+          Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
+            var document = ChatModel();
+            document.setChatModelFromDocumentSnapshot(chatDocument);
+            return new ChatScreen(chatDocument: document);
+          }));
+        });
+      },
+      onResume: (Map<String, dynamic> message) async {
+        
+        final data = message['data'];
+        print(data['chatId']);
+        Firestore.instance
+            .collection("chats")
+            .document(data['chatId'])
+            .get()
+            .then((chatDocument) {
+          print("Chat Id");
+          print(chatDocument.documentID);
+          var document = ChatModel();
+          document.setChatModelFromDocumentSnapshot(chatDocument);
+
+          Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
+            var document = ChatModel();
+            document.setChatModelFromDocumentSnapshot(chatDocument);
+            return new ChatScreen(chatDocument: document);
+          }));
+        });
+      },
+    );
   }
 
   _LoginPageState() {
@@ -62,11 +112,11 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _buildSearchResults() {
     if (!(_searchText.isEmpty)) {
-      print("Search Text contains stuff");
+      //print("Search Text contains stuff");
 
       Future<dynamic> snapshots =
           AlgoliaApplication.instance.performChatQuery(_searchText);
-      print(snapshots.runtimeType.toString());
+      //print(snapshots.runtimeType.toString());
 
       return FutureBuilder(
         future: snapshots,
@@ -78,9 +128,9 @@ class _LoginPageState extends State<LoginPage> {
             case ConnectionState.waiting:
               return Text(""); // Awaiting Results
             case ConnectionState.done:
-              print("Connection is established");
+              //print("Connection is established");
               if (snapshot.hasError) {
-                return Text("Error: ${snapshot.error}");
+                return Text("");
               }
               return ListView.builder(
                 itemCount: snapshot.data.nbHits,
@@ -95,12 +145,12 @@ class _LoginPageState extends State<LoginPage> {
                 },
               );
           }
-          print("Unreachable");
+          //print("Unreachable");
           return null; // unreachable
         },
       );
     } else {
-      print("Search Text contains nothing");
+      //print("Search Text contains nothing");
       return Text(""); // Nothing to display
     }
     // return Text("Will work this shit");
@@ -125,11 +175,12 @@ class _LoginPageState extends State<LoginPage> {
         }
       });
     } else {
-      print("Log in!!!");
+      //print("Log in!!!");
     }
   }
 
-  void onLoginStatusChanged(bool isLoggedIn, {userDocument, String profileUrl}) {
+  void onLoginStatusChanged(bool isLoggedIn,
+      {userDocument, String profileUrl}) {
     setState(() {
       this.isLoggedIn = isLoggedIn;
       this.userDocument = userDocument;
@@ -144,7 +195,7 @@ class _LoginPageState extends State<LoginPage> {
           });
         } else {
           setState(() {
-            print("Changing State");
+            //print("Changing State");
             _searchText = _filter.text;
           });
         }
@@ -152,17 +203,17 @@ class _LoginPageState extends State<LoginPage> {
 
       _firebaseMessaging.configure(
         onMessage: (Map<String, dynamic> message) {
-          print(message);
+          //print(message);
         },
         onLaunch: (Map<String, dynamic> message) {
-          print(message);
+          //print(message);
         },
         onResume: (Map<String, dynamic> message) {
-          print(message);
+          //print(message);
         },
       );
       _firebaseMessaging.getToken().then((token) {
-        print(token);
+        //print(token);
       });
     } else {
       AuthState.instance.setUser(null, null);
@@ -171,7 +222,6 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    
     // ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
     //   return getErrorWidget(context, errorDetails);
     // };
@@ -182,20 +232,24 @@ class _LoginPageState extends State<LoginPage> {
         appBar: AppBar(
           elevation: 0.0,
           title: _appBarTitle,
-          actions: isLoggedIn ? <Widget>[
-            IconButton(
-              icon: Icon(
-                Icons.exit_to_app,
-                color: Colors.white,
-              ),
-              onPressed: () => facebookLogin.isLoggedIn
-                  .then((isLoggedIn) => isLoggedIn ? _logout() : {}),
-            ),
-          ] : null,
-          leading: isLoggedIn ? new IconButton(
-            icon: _searchIcon,
-            onPressed: _searchPressed,
-          ) : null,
+          actions: isLoggedIn
+              ? <Widget>[
+                  IconButton(
+                    icon: Icon(
+                      Icons.exit_to_app,
+                      color: Colors.white,
+                    ),
+                    onPressed: () => facebookLogin.isLoggedIn
+                        .then((isLoggedIn) => isLoggedIn ? _logout() : {}),
+                  ),
+                ]
+              : null,
+          leading: isLoggedIn
+              ? new IconButton(
+                  icon: _searchIcon,
+                  onPressed: _searchPressed,
+                )
+              : null,
         ),
         body: !_isSearching
             ? Container(
@@ -224,7 +278,7 @@ class _LoginPageState extends State<LoginPage> {
           AuthCredential credential = FacebookAuthProvider.getCredential(
               accessToken: accessToken.token);
           FirebaseUser user = await _auth.signInWithCredential(credential);
-          print("signed in " + user.displayName);
+          //print("signed in " + user.displayName);
 
           if (user != null) {
             final QuerySnapshot result = await Firestore.instance
@@ -238,8 +292,8 @@ class _LoginPageState extends State<LoginPage> {
                 'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email,picture.height(200)&access_token=${facebookLoginResult.accessToken.token}');
 
             var profile = json.decode(graphResponse.body);
-            print(profile.toString());
-            print("The Facebook profile is");
+            //print(profile.toString());
+            //print("The Facebook profile is");
 
             // TODO: check if works
             if (documents.length == 0) {
@@ -252,7 +306,8 @@ class _LoginPageState extends State<LoginPage> {
                 'about': "",
                 "email": user.email,
                 "lastSeen": Timestamp(user.metadata.lastSignInTimestamp, 0),
-                "facebookID": profile['id'], // TODO: later on everything will be retreived based on the facebook id and not name, about, etc
+                "facebookID": profile[
+                    'id'], // TODO: later on everything will be retreived based on the facebook id and not name, about, etc
                 "timestamp": Timestamp(user.metadata.creationTimestamp, 0),
                 'uid': user.uid,
                 "username": ""
@@ -263,20 +318,23 @@ class _LoginPageState extends State<LoginPage> {
                   .document(user.uid)
                   .get();
 
-              onLoginStatusChanged(true, userDocument: userDocumentNew, profileUrl: profile['picture']['data']['url']);
-
+              onLoginStatusChanged(true,
+                  userDocument: userDocumentNew,
+                  profileUrl: profile['picture']['data']['url']);
             } else {
               var userDocumentNew = await Firestore.instance
                   .collection('users')
                   .document(user.uid)
                   .get();
 
-              onLoginStatusChanged(true, userDocument: userDocumentNew, profileUrl: profile['picture']['data']['url']);
+              onLoginStatusChanged(true,
+                  userDocument: userDocumentNew,
+                  profileUrl: profile['picture']['data']['url']);
             }
             break;
           }
         } catch (e) {
-          print(e);
+          //print(e);
         }
     }
   }
@@ -298,6 +356,6 @@ class _LoginPageState extends State<LoginPage> {
     await facebookLogin.logOut();
     _auth.signOut();
     onLoginStatusChanged(false);
-    print("Logged out");
+    //print("Logged out");
   }
 }

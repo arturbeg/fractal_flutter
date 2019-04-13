@@ -31,8 +31,8 @@ class _NewChatState extends State<NewChat> {
   void _submit() async {
     if (formKey.currentState.validate()) {
       formKey.currentState.save();
-      print(_newChatName);
-      print(_newChatAbout);
+      //print(_newChatName);
+      //print(_newChatAbout);
 
       if (widget.isSubchat) {
         // TODO: catch errors (like in the video with Javascript Promises)
@@ -54,7 +54,8 @@ class _NewChatState extends State<NewChat> {
             'avatarURL': widget.parentMessageSnapshot.data['chat']['avatarURL'],
           },
           "isSubchat": true,
-          "lastMessageTimestamp": FieldValue.serverTimestamp()
+          "lastMessageTimestamp": FieldValue.serverTimestamp(),
+          "url": ""
         });
 
         Navigator.of(context)
@@ -82,11 +83,12 @@ class _NewChatState extends State<NewChat> {
             'avatarURL': "",
           },
           "isSubchat": false,
-          "lastMessageTimestamp": FieldValue.serverTimestamp()
+          "lastMessageTimestamp": FieldValue.serverTimestamp(),
+          "url": ""
         });
 
         chatDocumentReference.get().then((chatDocument) {
-          print("Got the newly created subchat");
+          //print("Got the newly created subchat");
           var document = ChatModel();
           document.setChatModelFromDocumentSnapshot(chatDocument);
 
@@ -144,7 +146,7 @@ class _NewChatState extends State<NewChat> {
                             storageTaskSnapshot.ref
                                 .getDownloadURL()
                                 .then((downloadUrl) {
-                              print(downloadUrl);
+                              //print(downloadUrl);
 
                               setState(() {
                                 _newChatAvatarURL = downloadUrl;
@@ -168,7 +170,7 @@ class _NewChatState extends State<NewChat> {
                           return input.length < 1 ? "Provide a name" : null;
                         },
                         onSaved: (input) {
-                          print(input);
+                          //print(input);
                           _newChatName = input;
                         },
                       ),

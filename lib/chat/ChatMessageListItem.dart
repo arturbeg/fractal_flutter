@@ -37,7 +37,7 @@ class ChatMessageListItem extends StatelessWidget {
       },
       onPanUpdate: (details) {
         if (details.delta.dx < 0) {
-          print("Dragging in +X direction");
+          //print("Dragging in +X direction");
           Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
             return new MessageInfoPage(
               messageSnapshot: messageSnapshot,
@@ -135,10 +135,8 @@ class ChatMessageListItem extends StatelessWidget {
                           }
                         },
                         text: messageSnapshot['text'],
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          color: Colors.black
-                        ),)),
+                        style: TextStyle(fontSize: 16.0, color: Colors.black),
+                      )),
             messageSnapshot['subchatsCount'] != 0
                 ? new Text(
                     subchatsCountLabel,

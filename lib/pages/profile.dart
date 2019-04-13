@@ -18,8 +18,8 @@ class _profileState extends State<profile> {
   }
 
   _displayUserData() {
-    print("THE USER DOCUMENT IS RECEIVED");
-    print(widget.userDocument);
+    //print("THE USER DOCUMENT IS RECEIVED");
+    //print(widget.userDocument);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,

@@ -38,7 +38,7 @@ class CameraState extends State<camera_full> {
   @override
   Widget build(BuildContext context) {
     if (!_isReady) {
-      print("null camera");
+      //print("null camera");
       return new Container();
     }
     return new Scaffold(

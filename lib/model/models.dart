@@ -14,6 +14,7 @@ class ChatModel {
   var parentMessageId;
   var lastMessageTimestamp;
   var user; // only related to the joinedChat case
+  var url;
 
   getFirebaseTimestamp() {
     var millisecondsSinceEpoch = timestamp.millisecondsSinceEpoch;
@@ -49,6 +50,8 @@ class ChatModel {
 
     parentMessageId = joinedChatDocument['parentMessageId'];
 
+    url = joinedChatDocument['url'] != null ?  joinedChatDocument['url'] : ""; 
+
 
   }
 
@@ -73,6 +76,9 @@ class ChatModel {
     );
 
     parentMessageId = chatDocument['parentMessageId'];
+
+    url = chatDocument['url'] != null ?  chatDocument['url'] : "";
+
   }
 
   // TODO: fix the Algolia Snapshot model
@@ -103,6 +109,8 @@ class ChatModel {
     lastMessageTimestamp = DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpochLastMessage); 
 
     timestamp = DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch);
+
+    url = chatAlgoliaDocument['url'] != null ?  chatAlgoliaDocument['url'] : "";
   }
 }
 

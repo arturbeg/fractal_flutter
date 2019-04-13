@@ -25,8 +25,8 @@ class ChatState extends State<chats> {
   //     double maxScroll = _scrollController.position.maxScrollExtent;
   //     double currentScroll = _scrollController.position.pixels;
   //     double delta = 200.0; // or something else..
-  //     print(maxScroll);
-  //     print(currentScroll);
+  //     //print(maxScroll);
+  //     //print(currentScroll);
   //     // TODO: fix the scroll after state is changeds
   //     setState(() {
   //       if (maxScroll - currentScroll <= delta) {
@@ -58,7 +58,8 @@ class ChatState extends State<chats> {
                 var chatDocument = ChatModel();
                 chatDocument.setChatModelFromJoinedChatDocumentSnapshot(
                     snapshot.data.documents[index]);
-                return new ChatItem(chatDocument: chatDocument);
+                return new 
+                ChatItem(chatDocument: chatDocument);
               },
             );
         }
@@ -92,11 +93,11 @@ class ChatState extends State<chats> {
 //   @override
 //   void initState() {
 //     super.initState();
-//     print("Initialising the chats state");
+//     //print("Initialising the chats state");
 //     setState(() {
 //       _fetchJoinedChats().then((documents) {
-//         print("Setting the state!");
-//         // print(documents.length);
+//         //print("Setting the state!");
+//         // //print(documents.length);
 //         joinedChats = documents;
 //       });
 //     });
@@ -113,41 +114,41 @@ class ChatState extends State<chats> {
 //   }
 
 //   _sortDocuments(unsortedDocuments) async {
-//     print("Foreach starting");
+//     //print("Foreach starting");
 //     await unsortedDocuments.forEach((document) {
       
-//       // print(document.data['timestamp']);
+//       // //print(document.data['timestamp']);
 //       Firestore.instance
 //           .collection('messages')
 //           .where('chatId', isEqualTo: document.documentID)
 //           .orderBy("timestamp", descending: true)
 //           .getDocuments()
 //           .then((messages) {
-//             print("Foreeach continuitng"); 
+//             //print("Foreeach continuitng"); 
 
 //         if (messages.documents.length != 0) {
 //           var timestamp = messages.documents[0].data['timestamp']
 //               .toDate()
 //               ;
-//               print(timestamp);
+//               //print(timestamp);
 //           document.data['lastUpdate'] = timestamp;
 //         } else {
-//           // print("the length is 0");
+//           // //print("the length is 0");
 //           var timestamp = document.data['timestamp'].toDate().millisecondsSinceEpoch;
 //           document.data['lastUpdate'] = timestamp;
-//           print(document.data['lastUpdate']);
+//           //print(document.data['lastUpdate']);
 //         }
 //       });
       
 //     });
 
-//     print("Foreach ending");
+//     //print("Foreach ending");
 //     return unsortedDocuments;
 //   }
 
 //   _acutallySortDocuments(unsortedDocuments) {
-//     print(unsortedDocuments);
-//     // print(unsortedDocuments[0].data);
+//     //print(unsortedDocuments);
+//     // //print(unsortedDocuments[0].data);
 //     // sort here
 //     // unsortedDocuments.sort((a,b) {
 //     //   return a.data['lastUpdated'].compareTo(b.data['lastUpdated']);
@@ -158,7 +159,7 @@ class ChatState extends State<chats> {
 
 
 //   _finalFuture(updatedDocuments)  {
-//     print("Final future starting");
+//     //print("Final future starting");
 //     return FutureBuilder<dynamic>(
 //       future: updatedDocuments,
 //       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
@@ -172,9 +173,9 @@ class ChatState extends State<chats> {
 //             if (snapshot.hasError) {
 //               return Text('Error: ${snapshot.error}');
 //             }
-//             print("something");
+//             //print("something");
 //             var actuallySortedDocuments = _acutallySortDocuments(snapshot.data);
-//             print(actuallySortedDocuments);
+//             //print(actuallySortedDocuments);
 //             return Text("SHIT");
 //         }
 //         return null; // unreachable
@@ -212,7 +213,7 @@ class ChatState extends State<chats> {
 //   //   return ListView.builder(
 //   //     itemCount: 1,
 //   //     itemBuilder: (BuildContext context, int index) {
-//   //       print(joinedChats);
+//   //       //print(joinedChats);
 //   //       var chatDocument = ChatModel();
 //   //       chatDocument.setChatModelFromJoinedChatDocumentSnapshot(
 //   //           joinedChats.documents[index]);
@@ -257,8 +258,8 @@ class ChatState extends State<chats> {
 //   //     double maxScroll = _scrollController.position.maxScrollExtent;
 //   //     double currentScroll = _scrollController.position.pixels;
 //   //     double delta = 200.0; // or something else..
-//   //     print(maxScroll);
-//   //     print(currentScroll);
+//   //     //print(maxScroll);
+//   //     //print(currentScroll);
 //   //     // TODO: fix the scroll after state is changeds
 //   //     setState(() {
 //   //       if (maxScroll - currentScroll <= delta) {

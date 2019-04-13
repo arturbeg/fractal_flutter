@@ -26,8 +26,8 @@ class _WhatsAppHomeState extends State<WhatsAppHome>
   ];
 
   _onItemTapped(int index) {
-    // print("Tap tap");
-    print(index);
+    // //print("Tap tap");
+    //print(index);
 
     setState(() {
       _selectedIndex = index;
@@ -55,12 +55,12 @@ class _WhatsAppHomeState extends State<WhatsAppHome>
       body: new Center(
         child: _widgetOptions.elementAt(_selectedIndex),
       ),
-      floatingActionButton: FloatingActionButton(
-        elevation: 0.6,
-        onPressed: () => startAction(),
-        child: new Icon(Icons.message, color: Colors.white),
-        backgroundColor: Theme.of(context).accentColor,
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   elevation: 0.6,
+      //   onPressed: () => startAction(),
+      //   child: new Icon(Icons.message, color: Colors.white),
+      //   backgroundColor: Theme.of(context).accentColor,
+      // ),
     );
   }
 
