@@ -19,6 +19,7 @@ class AuthState {
   }
 
   static DocumentSnapshot currentUser;
+  // TODO: facebookGraphProfileUrl redundunt --> delete the property
   static String facebookGraphProfileUrl;
 }
 

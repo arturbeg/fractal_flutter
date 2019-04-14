@@ -32,6 +32,7 @@ dependencies:
   flutter_signin_button: ^0.2.8
   flutter_linkify: ^2.1.0
   url_launcher: ^5.0.2
+  shared_preferences: ^0.5.2
 
   loadmore: 
 

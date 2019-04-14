@@ -12,6 +12,7 @@ import './chat/chatscreen.dart';
 import './chat/algolia.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import './model/message.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 // import './chat//chatscreen.dart';
 
 // Widget getErrorWidget(BuildContext context, FlutterErrorDetails error) {
@@ -34,6 +35,8 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   bool isLoggedIn = false;
+  bool showCircularProgress = false;
+  // SharedPreferences prefs;
   DocumentSnapshot userDocument;
   String facebookProfilePicture;
   // var profileData;
@@ -51,6 +54,40 @@ class _LoginPageState extends State<LoginPage> {
   FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
   final List<Message> messages = [];
 
+  Future<Null> _function() async {
+    /*
+    This Function will be called every single time
+    when application is opened and it will check 
+    if the value inside Shared Preference exist or not
+    */
+
+    // TODO: configure to store custom user data
+    print("Executing prefs");
+    SharedPreferences prefs;
+    prefs = await SharedPreferences.getInstance();
+    if (prefs.getString("id") != null) {
+      // retreive the user document and pass it to the AuthState
+      // after that declare logged in state...
+      setState(() {
+        showCircularProgress = true;
+      });
+      print("Got the user");
+      Firestore.instance
+          .collection('users')
+          .document(prefs.getString("id"))
+          .get()
+          .then((userDocument) {
+        // print("The user is here");
+        print(userDocument['name']);
+        // AuthState.instance.setUser(userDocument, "");
+        // isLoggedIn = true;
+        onLoginStatusChanged(true, userDocument: userDocument, profileUrl: "");
+      });
+    } else {
+      onLoginStatusChanged(false);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -59,9 +96,7 @@ class _LoginPageState extends State<LoginPage> {
         const IosNotificationSettings(sound: true, badge: true, alert: true));
 
     _firebaseMessaging.configure(
-
       onMessage: (Map<String, dynamic> message) async {},
-
       onLaunch: (Map<String, dynamic> message) async {
         final data = message['data'];
         Firestore.instance
@@ -82,7 +117,6 @@ class _LoginPageState extends State<LoginPage> {
         });
       },
       onResume: (Map<String, dynamic> message) async {
-        
         final data = message['data'];
         print(data['chatId']);
         Firestore.instance
@@ -103,6 +137,8 @@ class _LoginPageState extends State<LoginPage> {
         });
       },
     );
+
+    this._function(); // check if user already logged in from the shared preferences
   }
 
   _LoginPageState() {
@@ -135,13 +171,21 @@ class _LoginPageState extends State<LoginPage> {
               return ListView.builder(
                 itemCount: snapshot.data.nbHits,
                 itemBuilder: (BuildContext context, int index) {
-                  var chatDocument = ChatModel();
-                  chatDocument.setChatModelFromAlgoliaSnapshot(
-                      snapshot.data.hits[index].data);
-                  return new ChatItem(
-                    chatDocument: chatDocument,
-                    heroTag: "searchResult",
-                  );
+                  // TODO: the issue is probably with the error of correcly
+                  // converting python generated chats into Algolia snapshots
+                  print(snapshot.data.nbHits);
+                  if (snapshot.data.nbHits > 0) {
+                    // print("Smth");
+                    var chatDocument = ChatModel();
+                    chatDocument.setChatModelFromAlgoliaSnapshot(
+                        snapshot.data.hits[index].data);
+                    return new ChatItem(
+                      chatDocument: chatDocument,
+                      heroTag: "searchResult",
+                    );
+                  } else {
+                    return null;
+                  }
                 },
               );
           }
@@ -180,14 +224,34 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void onLoginStatusChanged(bool isLoggedIn,
-      {userDocument, String profileUrl}) {
+      {userDocument, String profileUrl}) async {
     setState(() {
       this.isLoggedIn = isLoggedIn;
       this.userDocument = userDocument;
+      this.showCircularProgress = false;
     });
 
     if (isLoggedIn) {
       AuthState.instance.setUser(userDocument, profileUrl);
+
+      // configure shared preferences here
+
+      SharedPreferences prefs;
+      prefs = await SharedPreferences.getInstance();
+      // TODO: have custom user model!!!
+      prefs.setString("id", userDocument.documentID);
+
+      // later have all the fields necessary for user model stored locally
+      // 'name': user.displayName,
+      // 'about': "",
+      // "email": user.email,
+      // "lastSeen": Timestamp(user.metadata.lastSignInTimestamp, 0),
+      // "facebookID": profile[
+      //     'id'],
+      // "timestamp": Timestamp(user.metadata.creationTimestamp, 0),
+      // 'uid': user.uid,
+      // "username": ""
+
       _filter.addListener(() {
         if (_filter.text.isEmpty) {
           setState(() {
@@ -264,6 +328,10 @@ class _LoginPageState extends State<LoginPage> {
     var facebookLoginResult =
         await facebookLogin.logInWithReadPermissions(['email']);
 
+    setState(() {
+      this.showCircularProgress = true;
+    });
+
     switch (facebookLoginResult.status) {
       case FacebookLoginStatus.error:
         onLoginStatusChanged(false);
@@ -295,7 +363,7 @@ class _LoginPageState extends State<LoginPage> {
             //print(profile.toString());
             //print("The Facebook profile is");
 
-            // TODO: check if works
+            // TODO: later on everything will be retreived based on the facebook id and not name, about, etc
             if (documents.length == 0) {
               // Update data to server if new user
               Firestore.instance
@@ -306,8 +374,7 @@ class _LoginPageState extends State<LoginPage> {
                 'about': "",
                 "email": user.email,
                 "lastSeen": Timestamp(user.metadata.lastSignInTimestamp, 0),
-                "facebookID": profile[
-                    'id'], // TODO: later on everything will be retreived based on the facebook id and not name, about, etc
+                "facebookID": profile['id'],
                 "timestamp": Timestamp(user.metadata.creationTimestamp, 0),
                 'uid': user.uid,
                 "username": ""
@@ -340,12 +407,16 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   _displayLoginButton() {
-    return Center(
-      child: RaisedButton(
-        child: Text("Sign in with Facebook"),
-        onPressed: () => initiateFacebookLogin(),
-      ),
-    );
+    if (showCircularProgress) {
+      return Center(child: CircularProgressIndicator());
+    } else {
+      return Center(
+        child: RaisedButton(
+          child: Text("Sign in with Facebook"),
+          onPressed: () => initiateFacebookLogin(),
+        ),
+      );
+    }
   }
 
   _displayHomePage() {
@@ -354,8 +425,15 @@ class _LoginPageState extends State<LoginPage> {
 
   _logout() async {
     await facebookLogin.logOut();
+
+    SharedPreferences prefs;
+    prefs = await SharedPreferences.getInstance();
+    prefs.clear();
+    // prefs.commit(); --> is there anything that is used instead
+
     _auth.signOut();
     onLoginStatusChanged(false);
+
     //print("Logged out");
   }
 }
