@@ -64,7 +64,7 @@ class ChatModel {
       id: joinedChatDocument['reddit']['id'],
       over_18: joinedChatDocument['reddit']['over_18'],
       subreddit: joinedChatDocument['reddit']['subreddit'],
-      created_utc: DateTime.fromMicrosecondsSinceEpoch(joinedChatDocument['reddit']['created_utc'])
+      // created_utc: DateTime.fromMicrosecondsSinceEpoch(joinedChatDocument['reddit']['created_utc'])
       // "created_utc": submission.created_utc
     );
   }
