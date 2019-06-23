@@ -44,6 +44,8 @@ class ChatScreenState extends State<ChatScreen> {
 
   DocumentSnapshot currentUser;
 
+  bool _isUploadingPhoto = false;
+
   void initState() {
     super.initState();
 
@@ -154,7 +156,18 @@ class ChatScreenState extends State<ChatScreen> {
       "parentChat": widget.chatDocument.parentChat.getParentChatModelMap(),
       "isSubchat": widget.chatDocument.isSubchat,
       "lastMessageTimestamp": FieldValue.serverTimestamp(),
-      "url": widget.chatDocument.url
+      "url": widget.chatDocument.url,
+      "reddit": {
+        "id": widget.chatDocument.reddit.id,
+        "author": widget.chatDocument.reddit.author,
+        "num_comments": widget.chatDocument.reddit.num_comments,
+        "over_18": widget.chatDocument.reddit.over_18,
+        "subreddit": widget.chatDocument.reddit.subreddit,
+        "upvote_ratio": widget.chatDocument.reddit.upvote_ratio,
+        "shortlink": widget.chatDocument.reddit.shortlink,
+        'reddit_score': widget.chatDocument.reddit.reddit_score,
+        'rank': widget.chatDocument.reddit.rank
+      },
     });
 
     _firebaseMessaging.subscribeToTopic(widget.chatDocument.id);
@@ -214,13 +227,13 @@ class ChatScreenState extends State<ChatScreen> {
             }
           },
         ),
-        IconButton(
-          icon: Icon(Icons.edit),
-          onPressed: () {
-            //print("Wanna edit?");
-            _handleEdit();
-          },
-        ),
+        // IconButton(
+        //   icon: Icon(Icons.edit),
+        //   onPressed: () {
+        //     //print("Wanna edit?");
+        //     _handleEdit();
+        //   },
+        // ),
       ];
     } else {
       return <Widget>[
@@ -323,7 +336,7 @@ class ChatScreenState extends State<ChatScreen> {
             children: <Widget>[
               new Container(
                 margin: new EdgeInsets.symmetric(horizontal: 4.0),
-                child: new IconButton(
+                child: _isUploadingPhoto ? CircularProgressIndicator() : IconButton(
                     icon: new Icon(
                       Icons.photo_camera,
                       color: Theme.of(context).accentColor,
@@ -331,28 +344,40 @@ class ChatScreenState extends State<ChatScreen> {
                     ),
                     onPressed: () async {
                       // await _ensureLoggedIn();
-                      File imageFile = await ImagePicker.pickImage(
-                          source: ImageSource.gallery);
-                      int timestamp = new DateTime.now().millisecondsSinceEpoch;
-                      StorageReference storageReference = FirebaseStorage
-                          .instance
-                          .ref()
-                          .child("img_" + timestamp.toString() + ".jpg");
 
-                      StorageUploadTask uploadTask =
-                          storageReference.putFile(imageFile);
+                      if (!_isUploadingPhoto) {
+                        setState(() {
+                          _isUploadingPhoto = true;
+                        });
+                        File imageFile = await ImagePicker.pickImage(
+                            source: ImageSource.gallery);
+                        int timestamp =
+                            new DateTime.now().millisecondsSinceEpoch;
+                        StorageReference storageReference = FirebaseStorage
+                            .instance
+                            .ref()
+                            .child("img_" + timestamp.toString() + ".jpg");
 
-                      StorageTaskSnapshot storageTaskSnapshot =
-                          await uploadTask.onComplete;
+                        StorageUploadTask uploadTask =
+                            storageReference.putFile(imageFile);
 
-                      storageTaskSnapshot.ref
-                          .getDownloadURL()
-                          .then((downloadUrl) {
-                        //print(downloadUrl);
-                        _sendMessage(
-                            messageText: null,
-                            imageUrl: downloadUrl.toString());
-                      });
+                        StorageTaskSnapshot storageTaskSnapshot =
+                            await uploadTask.onComplete; 
+
+                        storageTaskSnapshot.ref
+                            .getDownloadURL()
+                            .then((downloadUrl) {
+                          //print(downloadUrl);
+                          _sendMessage(
+                              messageText: null,
+                              imageUrl: downloadUrl.toString());
+
+                          setState(() {
+                            _isUploadingPhoto = false;
+                          });    
+                          
+                        });
+                      }
                     }),
               ),
               new Flexible(
@@ -415,7 +440,8 @@ class ChatScreenState extends State<ChatScreen> {
           'id': currentUser.documentID,
           'name': currentUser['name']
         },
-        'subchatsCount': 0
+        'repliesCount':
+            0 // 0 either means no chat created or no messages in the thread, so not displaying anythign
       });
 
       // send the cloud message notification

@@ -15,6 +15,7 @@ class ChatModel {
   var lastMessageTimestamp;
   var user; // only related to the joinedChat case
   var url;
+  var reddit;
 
   getFirebaseTimestamp() {
     var millisecondsSinceEpoch = timestamp.millisecondsSinceEpoch;
@@ -46,16 +47,30 @@ class ChatModel {
         facebookID: joinedChatDocument['user']['facebookID'],
         id: joinedChatDocument['user']['id'],
         name: joinedChatDocument['user']['name']);
-    
 
     parentMessageId = joinedChatDocument['parentMessageId'];
 
-    url = joinedChatDocument['url'] != null ?  joinedChatDocument['url'] : ""; 
+    url = joinedChatDocument['url'] != null ? joinedChatDocument['url'] : "";
 
+    isSubchat = joinedChatDocument['isSubchat'];
 
+    reddit = RedditModel(
+      author: joinedChatDocument['reddit']['author'],
+      num_comments: joinedChatDocument['reddit']['num_comments'],
+      rank: joinedChatDocument['reddit']['rank'],
+      reddit_score: joinedChatDocument['reddit']['reddit_score'],
+      shortlink: joinedChatDocument['reddit']['shortlink'],
+      upvote_ratio: joinedChatDocument['reddit']['upvote_ratio'],
+      id: joinedChatDocument['reddit']['id'],
+      over_18: joinedChatDocument['reddit']['over_18'],
+      subreddit: joinedChatDocument['reddit']['subreddit'],
+      created_utc: DateTime.fromMicrosecondsSinceEpoch(joinedChatDocument['reddit']['created_utc'])
+      // "created_utc": submission.created_utc
+    );
   }
 
   setChatModelFromDocumentSnapshot(DocumentSnapshot chatDocument) {
+
     id = chatDocument.documentID;
     about = chatDocument['about'];
     avatarURL = chatDocument['avatarURL'];
@@ -77,7 +92,25 @@ class ChatModel {
 
     parentMessageId = chatDocument['parentMessageId'];
 
-    url = chatDocument['url'] != null ?  chatDocument['url'] : "";
+    url = chatDocument['url'] != null ? chatDocument['url'] : "";
+
+    isSubchat = chatDocument['isSubchat'];
+
+    reddit = RedditModel(
+      author: chatDocument['reddit']['author'],
+      num_comments: chatDocument['reddit']['num_comments'],
+      rank: chatDocument['reddit']['rank'],
+      reddit_score: chatDocument['reddit']['reddit_score'],
+      shortlink: chatDocument['reddit']['shortlink'],
+      upvote_ratio: chatDocument['reddit']['upvote_ratio'],
+      id: chatDocument['reddit']['id'],
+      over_18: chatDocument['reddit']['over_18'],
+      subreddit: chatDocument['reddit']['subreddit'],
+      // created_utc: DateTime.
+    
+      
+    );
+
 
   }
 
@@ -103,14 +136,15 @@ class ChatModel {
     final millisecondsSinceEpoch =
         chatAlgoliaDocument['timestamp']['_seconds'] * 1000;
 
-    final millisecondsSinceEpochLastMessage = 
-      chatAlgoliaDocument['lastMessageTimestamp']['_seconds'] * 1000;
+    final millisecondsSinceEpochLastMessage =
+        chatAlgoliaDocument['lastMessageTimestamp']['_seconds'] * 1000;
 
-    lastMessageTimestamp = DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpochLastMessage); 
+    lastMessageTimestamp =
+        DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpochLastMessage);
 
     timestamp = DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch);
 
-    url = chatAlgoliaDocument['url'] != null ?  chatAlgoliaDocument['url'] : "";
+    url = chatAlgoliaDocument['url'] != null ? chatAlgoliaDocument['url'] : "";
   }
 }
 
@@ -155,6 +189,46 @@ class ParentChatModel {
 
   getParentChatModelMap() {
     final map = {'avatarURL': avatarURL, 'id': id, 'name': name};
+
+    return map;
+  }
+}
+
+class RedditModel {
+  // TODO: upper camel case
+
+  final String id;
+  final bool over_18;
+  final String subreddit;
+  final String author;
+  final int num_comments;
+  final int rank;
+  final int reddit_score;
+  final String shortlink;
+  final double upvote_ratio;
+  final DateTime created_utc; // utc will be converted to DateTime
+
+  RedditModel(
+      {this.author,
+      this.num_comments,
+      this.rank,
+      this.reddit_score,
+      this.shortlink,
+      this.upvote_ratio,
+      this.id,
+      this.over_18,
+      this.subreddit,
+      this.created_utc});
+
+  getRedditModelMap() {
+    final map = {
+      'author': author,
+      'num_comments': num_comments,
+      'rank': rank,
+      'reddit_score': reddit_score,
+      'shortlink': shortlink,
+      'upvote_ratio': upvote_ratio,
+    };
 
     return map;
   }

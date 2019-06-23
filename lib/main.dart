@@ -308,12 +308,12 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ]
               : null,
-          leading: isLoggedIn
-              ? new IconButton(
-                  icon: _searchIcon,
-                  onPressed: _searchPressed,
-                )
-              : null,
+          // leading: isLoggedIn
+          //     ? new IconButton(
+          //         icon: _searchIcon,
+          //         onPressed: _searchPressed,
+          //       )
+          //     : null,
         ),
         body: !_isSearching
             ? Container(
@@ -434,6 +434,6 @@ class _LoginPageState extends State<LoginPage> {
     _auth.signOut();
     onLoginStatusChanged(false);
 
-    //print("Logged out");
+
   }
 }

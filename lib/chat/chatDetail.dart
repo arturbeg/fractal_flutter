@@ -35,7 +35,6 @@ class _DetailPageState extends State<DetailPage>
     _tabController = new TabController(vsync: this, initialIndex: 1, length: 2);
     print("THE URL IS");
     print(widget.chatDocument.url == "");
-
   }
 
   @override
@@ -115,49 +114,72 @@ class _DetailPageState extends State<DetailPage>
 
   Widget _getImageNetwork() {
     return new Container(
-      height: 200.0,
-      child: widget.chatDocument.avatarURL != ""
-          ? Image.network(
-              widget.chatDocument.avatarURL,
-              fit: BoxFit.cover,
-            )
-          : new Image.asset(
-              'assets/default-chat.png',
-              fit: BoxFit.cover,
-            ),
-    );
+        // height: 200.0,
+        child: widget.chatDocument.avatarURL != ""
+            ? Image.network(
+                widget.chatDocument.avatarURL,
+                fit: BoxFit.cover,
+              )
+            : null
+
+        // new Image.asset(
+        //     'assets/default-chat.png',
+        //     fit: BoxFit.cover,
+        );
   }
 
-  Widget _getBody(tittle, description, link, context) {
+  Widget _getBody(tittle, description, link, context) { 
+    print(widget.chatDocument.isSubchat);  
     return new Container(
       margin: new EdgeInsets.all(15.0),
       child: new Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          _getTittle(tittle),
-          // _getDate(date,origin),
-          _getDescription(description),
-          _getAntLink(),
-          _getLink(link, context)
-        ],
+        children: widget.chatDocument.isSubchat
+            ? <Widget>[
+                _getTittle(tittle),
+                _getDescription(description),
+              ]
+            : <Widget>[
+                _getTittle(tittle),
+                // _getDate(date,origin),
+                _getDescription(description),
+                _getAntLink(),
+                _getLink(link, context),
+                _getOriginalAntRedditLink(),
+                _getRedditPostLink(context),
+              ],
       ),
     );
   }
 
   Widget _getAntLink() {
     if (widget.chatDocument.url != "") {
-        return new Container(
-          margin: new EdgeInsets.only(top: 30.0),
-          child: new Text(
-            "Read more:",
-            style: new TextStyle(
-                fontWeight: FontWeight.bold, color: Colors.grey[600]),
-          ),
-        );
-      
+      return new Container(
+        margin: new EdgeInsets.only(top: 10.0),
+        child: new Text(
+          "Read more:",
+          style: new TextStyle(
+              fontWeight: FontWeight.bold, color: Colors.grey[600]),
+        ),
+      );
     } else {
       return new Text("");
     }
+  }
+
+  Widget _getOriginalAntRedditLink() {
+    // if (widget.chatDocument.url != "") {
+    return new Container(
+      margin: new EdgeInsets.only(top: 10.0),
+      child: new Text(
+        "Original Reddit post:",
+        style:
+            new TextStyle(fontWeight: FontWeight.bold, color: Colors.grey[600]),
+      ),
+    );
+    // } else {
+    //   return new Text("");
+    // }
   }
 
   Widget _getLink(link, context) {
@@ -170,6 +192,24 @@ class _DetailPageState extends State<DetailPage>
           ),
           onTap: () {
             _launchURL(widget.chatDocument.url, context);
+          },
+        );
+      }
+    } else {
+      return new Text("");
+    }
+  }
+
+  Widget _getRedditPostLink(context) {
+    if (widget.chatDocument.reddit.shortlink != null) {
+      if (widget.chatDocument.url != "") {
+        return new GestureDetector(
+          child: new Text(
+            widget.chatDocument.reddit.shortlink,
+            style: new TextStyle(color: Colors.blue),
+          ),
+          onTap: () {
+            _launchURL(widget.chatDocument.reddit.shortlink, context);
           },
         );
       }

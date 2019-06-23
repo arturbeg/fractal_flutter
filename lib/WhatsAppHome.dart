@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import './chat/newChatPage.dart';
 import './pages/chats.dart';
 import './pages/profile.dart';
-import './pages/explore.dart';
+import './pages/subreddits.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:core';
 import './auth_state.dart';
@@ -20,15 +20,15 @@ class _WhatsAppHomeState extends State<WhatsAppHome>
   int _selectedIndex = 1;
 
   final _widgetOptions = [
-    explore(),
     chats(),
+    // explore(),
+    SubredditsScreen(),
     profile(userDocument: AuthState.currentUser)
   ];
 
   _onItemTapped(int index) {
     // //print("Tap tap");
     //print(index);
-
     setState(() {
       _selectedIndex = index;
     });
@@ -42,9 +42,9 @@ class _WhatsAppHomeState extends State<WhatsAppHome>
       bottomNavigationBar: BottomNavigationBar(
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-              icon: Icon(Icons.home), title: Text('Explore')),
+              icon: Icon(Icons.chat_bubble), title: Text('Saved')),
           BottomNavigationBarItem(
-              icon: Icon(Icons.chat_bubble), title: Text('Chats')),
+              icon: Icon(Icons.home), title: Text('Explore')),
           BottomNavigationBarItem(
               icon: Icon(Icons.person), title: Text('Profile')),
         ],

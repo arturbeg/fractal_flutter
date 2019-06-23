@@ -55,7 +55,19 @@ class _NewChatState extends State<NewChat> {
           },
           "isSubchat": true,
           "lastMessageTimestamp": FieldValue.serverTimestamp(),
-          "url": ""
+          "url": "",
+          // TODO: redundunt
+          "reddit": {
+            "id": "",
+            "author": "",
+            "num_comments": "",
+            "over_18": "",
+            "subreddit": "",
+            "upvote_ratio": "",
+            "shortlink": "",
+            'reddit_score': "",
+            'rank': ""
+          },
         });
 
         Navigator.of(context)
@@ -84,7 +96,19 @@ class _NewChatState extends State<NewChat> {
           },
           "isSubchat": false,
           "lastMessageTimestamp": FieldValue.serverTimestamp(),
-          "url": ""
+          "url": "",
+          // TODO: redundunt
+          "reddit": {
+            "id": "",
+            "author": "",
+            "num_comments": "",
+            "over_18": "",
+            "subreddit": "",
+            "upvote_ratio": "",
+            "shortlink": "",
+            'reddit_score': "",
+            'rank': ""
+          },
         });
 
         chatDocumentReference.get().then((chatDocument) {

@@ -5,8 +5,6 @@ import '../chat/chatscreen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../view/chatItem.dart';
 
-
-
 class explore extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
@@ -21,18 +19,22 @@ class ExploreState extends State<explore> {
   }
 }
 
-
 class ExploreChatsList extends StatelessWidget {
 
   final exploreChatsStream = Firestore.instance.collection('chats')
   .where('isSubchat', isEqualTo: false)
-  .orderBy('lastMessageTimestamp', descending: true)
-  .limit(80) // later will have pagination
+  .orderBy('reddit.rank')
+  .limit(25) // later will have pagination
   .snapshots();
   // TODO: change the StreamBuilder implementation (circular progress instead of "Loading...")
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
+          return Scaffold(
+        appBar: AppBar(
+          elevation: 0.0,
+          title: Text("r/worldnews"),
+        ),
+        body: new StreamBuilder<QuerySnapshot>(
       stream: exploreChatsStream,
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasError)
@@ -44,13 +46,14 @@ class ExploreChatsList extends StatelessWidget {
               children: snapshot.data.documents.map((DocumentSnapshot document) {
                 var chatDocument = ChatModel();
                 chatDocument.setChatModelFromDocumentSnapshot(document);
-                return new ChatItem(chatDocument: chatDocument);
+                return new 
+                Material(
+                  child: ChatItem(chatDocument: chatDocument)
+                );
               }).toList(),
             );
         }
       },
-    );
-  }
-}
-
-
+    ),
+      );
+}}

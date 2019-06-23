@@ -6,6 +6,8 @@ import './messageInfoPage.dart';
 import '../auth_state.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../chat/chatscreen.dart';
+import '../model/models.dart';
 
 class ChatMessageListItem extends StatelessWidget {
   final DocumentSnapshot messageSnapshot;
@@ -17,34 +19,126 @@ class ChatMessageListItem extends StatelessWidget {
 
   ChatMessageListItem({this.messageSnapshot});
 
+  Future<bool> _getMessageHasSubchat(DocumentSnapshot messageSnapshot) async {
+    final QuerySnapshot result = await Firestore.instance
+        .collection('chats')
+        .where('parentMessageId', isEqualTo: messageSnapshot.documentID)
+        .getDocuments();
+
+    final List<DocumentSnapshot> documents = result.documents;
+
+    return documents.length > 0 ? true : false;
+  }
+
+  _openSubchat(DocumentSnapshot messageSnapshot, context) async {
+    final QuerySnapshot result = await Firestore.instance
+        .collection('chats')
+        .where('parentMessageId', isEqualTo: messageSnapshot.documentID)
+        .getDocuments();
+
+    final List<DocumentSnapshot> documents = result.documents;
+
+    final chatDocument = documents[0];
+
+    var document = ChatModel();
+    document.setChatModelFromDocumentSnapshot(chatDocument);
+
+    Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
+      var document = ChatModel();
+      document.setChatModelFromDocumentSnapshot(chatDocument);
+      return new ChatScreen(chatDocument: document);
+    }));
+  }
+
+  _createSubchat(
+      String subchatName, DocumentSnapshot messageSnapshot, context) async {
+    final DocumentReference chatDocumentReference =
+        await Firestore.instance.collection("chats").add({
+      "about": "",
+      "avatarURL": "",
+      "name": subchatName,
+      "owner": {
+        'id': AuthState.currentUser.documentID,
+        'name': AuthState.currentUser['name'],
+        'facebookID': AuthState.currentUser['facebookID']
+      },
+      "timestamp": FieldValue.serverTimestamp(),
+      "parentMessageId": messageSnapshot.documentID,
+      "parentChat": {
+        'id': messageSnapshot.data['chat']['id'],
+        'name': messageSnapshot.data['chat']['name'],
+        'avatarURL': messageSnapshot.data['chat']['avatarURL'],
+      },
+      "isSubchat": true,
+      "lastMessageTimestamp": FieldValue.serverTimestamp(),
+      "url": "",
+      // TODO: add reddit and other attributes
+      "reddit": {
+        "id": "",
+        "author": "",
+        "num_comments": 0,
+        "over_18": false,
+        "subreddit": "",
+        "upvote_ratio": 0.0,
+        "shortlink": "",
+        'reddit_score': 0,
+        'rank': 1000
+      },
+    });
+
+    chatDocumentReference.get().then((chatDocument) {
+      //print("Got the newly created subchat");
+      var document = ChatModel();
+      document.setChatModelFromDocumentSnapshot(chatDocument);
+
+      Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
+        var document = ChatModel();
+        document.setChatModelFromDocumentSnapshot(chatDocument);
+        return new ChatScreen(chatDocument: document);
+      }));
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    // TODO: only allow branching of text messages
     return new GestureDetector(
       onDoubleTap: () {
-        // Navigate to Branching page
-        Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
-          return new BranchingPage(
-            messageSnapshot: messageSnapshot,
-          );
-        }));
-      },
-      onLongPress: () {
-        Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
-          return new BranchingPage(
-            messageSnapshot: messageSnapshot,
-          );
-        }));
-      },
-      onPanUpdate: (details) {
-        if (details.delta.dx < 0) {
-          //print("Dragging in +X direction");
-          Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
-            return new MessageInfoPage(
-              messageSnapshot: messageSnapshot,
-            );
-          }));
+        // If message subchat exists --> open it
+        // If message subchat does not exist --> create subchat and navigate to it
+        if (messageSnapshot['imageURL'] == null) {
+          _getMessageHasSubchat(messageSnapshot).then((hasSubchat) {
+            if (hasSubchat) {
+              _openSubchat(messageSnapshot, context);
+            } else {
+              final subchatName = messageSnapshot['text'];
+              _createSubchat(subchatName, messageSnapshot, context);
+            }
+          });
         }
       },
+      onLongPress: () {
+        if (messageSnapshot['imageURL'] == null) {
+          _getMessageHasSubchat(messageSnapshot).then((hasSubchat) {
+            if (hasSubchat) {
+              _openSubchat(messageSnapshot, context);
+            } else {
+              final subchatName = messageSnapshot['text'];
+              _createSubchat(subchatName, messageSnapshot, context);
+            }
+          });
+        }
+      },
+      // onForcePressStart: () {
+      //   _getMessageHasSubchat(messageSnapshot).then((hasSubchat) {
+      //     if(hasSubchat) {
+      //       _openSubchat(messageSnapshot, context);
+      //     } else {
+      //       final subchatName = messageSnapshot['text'];
+      //       _createSubchat(subchatName, messageSnapshot, context);
+      //     }
+      //   });
+      // },
       child: Row(
           children: messageSnapshot['sender']['id'] ==
                   AuthState.currentUser.documentID
@@ -61,6 +155,10 @@ class ChatMessageListItem extends StatelessWidget {
   }
 
   List<Widget> getReceivedMessageLayout() {
+    String repliesCount = messageSnapshot['repliesCount'].toString();
+    String repliesCountLabel = messageSnapshot['repliesCount'] > 1
+        ? repliesCount + ' replies'
+        : repliesCount + ' reply';
     return <Widget>[
       new Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,17 +196,27 @@ class ChatMessageListItem extends StatelessWidget {
                           throw 'Could not launch $link';
                         }
                       },
-                      text: messageSnapshot['text']))
+                      text: messageSnapshot['text'])),
+          messageSnapshot['repliesCount'] > 0
+              ? new Text(
+                  repliesCountLabel,
+                  style: TextStyle(color: Colors.grey, fontSize: 10.0),
+                )
+              : null
         ],
       ))
     ];
   }
 
   List<Widget> getSentMessageLayout() {
-    String subchatsCount = messageSnapshot['subchatsCount'].toString();
-    String subchatsCountLabel = messageSnapshot['subchatsCount'] > 1
-        ? subchatsCount + ' subchats'
-        : subchatsCount + ' subchat';
+    // String subchatsCount = messageSnapshot['subchatsCount'].toString();
+    // String subchatsCountLabel = messageSnapshot['subchatsCount'] > 1
+    //     ? subchatsCount + ' subchats'
+    //     : subchatsCount + ' subchat';
+    String repliesCount = messageSnapshot['repliesCount'].toString();
+    String repliesCountLabel = messageSnapshot['repliesCount'] > 1
+        ? repliesCount + ' replies'
+        : repliesCount + ' reply';
     return <Widget>[
       new Expanded(
         child: new Column(
@@ -122,9 +230,10 @@ class ChatMessageListItem extends StatelessWidget {
             new Container(
                 margin: const EdgeInsets.only(top: 5.0),
                 child: messageSnapshot['imageURL'] != null
-                    ? new Image.network(
-                        messageSnapshot['imageURL'],
-                        width: 150.0,
+                    ? FadeInImage(
+                        image: NetworkImage(messageSnapshot['imageURL']),
+                        placeholder: AssetImage('assets/placeholder-image.png'),
+                        width: 200.0,
                       )
                     : new Linkify(
                         onOpen: (link) async {
@@ -137,12 +246,14 @@ class ChatMessageListItem extends StatelessWidget {
                         text: messageSnapshot['text'],
                         style: TextStyle(fontSize: 16.0, color: Colors.black),
                       )),
-            messageSnapshot['subchatsCount'] != 0
-                ? new Text(
-                    subchatsCountLabel,
-                    style: TextStyle(color: Colors.grey, fontSize: 10.0),
-                  )
-                : null
+            messageSnapshot['imageURL'] != null
+                ? null
+                : messageSnapshot['repliesCount'] > 0
+                    ? new Text(
+                        repliesCountLabel,
+                        style: TextStyle(color: Colors.grey, fontSize: 10.0),
+                      )
+                    : null
           ].where((c) => c != null).toList(),
         ),
       ),

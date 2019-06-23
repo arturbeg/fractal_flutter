@@ -7,7 +7,6 @@ import '../model/models.dart';
 import '../chat/messageInfoPage.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
-
 class ChatItem extends StatelessWidget {
   // Can be a DocumentSnapshot, can also be a chat document retreived from Algolia
   final ChatModel chatDocument;
@@ -51,40 +50,66 @@ class ChatItem extends StatelessWidget {
   //   final someTimeAgo = new DateTime.now().subtract(new Duration(minutes: 15));
   // }
 
+  String shortenNumber(int value) {
+    const units = <int, String>{
+      1000000000: 'B',
+      1000000: 'M',
+      1000: 'K',
+    };
+    return units.entries
+        .map((e) => '${value ~/ e.key}${e.value}')
+        .firstWhere((e) => !e.startsWith('0'), orElse: () => '$value');
+  }
+
   @override
   Widget build(BuildContext context) {
     //print(heroTag + chatDocument.id.toString());
     return Hero(
       tag: heroTag + chatDocument.id.toString(),
       child: ListTile(
-        leading: new CircleAvatar(
-          backgroundImage: chatDocument.avatarURL != ""
-                      ? NetworkImage(
-                          chatDocument.avatarURL,
-                        )
-                      : new AssetImage(
-                          'assets/default-chat.png',
-                        ),
-          backgroundColor: Colors.white,
-          // backgroundImage:  // new NetworkImage(chatDocument.avatarURL),
-        ),
-        title: new Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        leading: chatDocument.isSubchat ? null :  new Container(
+            child: Column(
           children: <Widget>[
-            new Flexible(
-              child: new Text(
-              _getShortenedName(chatDocument.name),
-              style: new TextStyle(fontWeight: FontWeight.bold),
+            Text(shortenNumber(chatDocument.reddit.reddit_score)),
+            // Text(
+            //     ".",
+            //     style: new TextStyle(fontSize: 20.0),
+            //   ),
+            Text(
+                timeago.format(chatDocument.lastMessageTimestamp,
+                    locale: 'en_short'),
+                style: new TextStyle(color: Colors.grey, fontSize: 14.0),
+                textAlign: TextAlign.left,
+              ),
+          ],
+        )),
+        // leading: new CircleAvatar(
+        //   backgroundImage: chatDocument.avatarURL != ""
+        //               ? NetworkImage(
+        //                   chatDocument.avatarURL,
+        //                 )
+        //               : new AssetImage(
+        //                   'assets/default-chat.png',
+        //                 ),
+        //   backgroundColor: Colors.white,
+        //   // backgroundImage:  // new NetworkImage(chatDocument.avatarURL),
+        // ),
+        title: new Column(
+          children: <Widget>[
+            new Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                new Flexible(
+                  child: new Text(
+                    _getShortenedName(chatDocument.name),
+                    style: new TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
             ),
-            ),
-            // new Text(
-            //   // TODO: timeago
-            //   timeago.format(chatDocument.lastMessageTimestamp),
-            //   // chatDocument.lastMessageTimestamp.toString().substring(5, 11),
-            //   style: new TextStyle(color: Colors.grey, fontSize: 14.0),
-            // ),
           ],
         ),
+
         subtitle: new Container(
             padding: const EdgeInsets.only(top: 5.0),
             child: StreamBuilder<QuerySnapshot>(
