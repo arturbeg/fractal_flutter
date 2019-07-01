@@ -153,7 +153,6 @@ class ChatMessageListItem extends StatelessWidget {
     //   )
     // );
   }
-
   List<Widget> getReceivedMessageLayout() {
     String repliesCount = messageSnapshot['repliesCount'].toString();
     String repliesCountLabel = messageSnapshot['repliesCount'] > 1
@@ -176,34 +175,39 @@ class ChatMessageListItem extends StatelessWidget {
           child: new Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          new Text(messageSnapshot['sender']['name'],
-              style: new TextStyle(
-                  fontSize: 14.0,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold)),
-          new Container(
-              margin: const EdgeInsets.only(top: 5.0),
-              child: messageSnapshot['imageURL'] != null
-                  ? new Image.network(
-                      messageSnapshot['imageURL'],
-                      height: 100.0,
-                    )
-                  : new Linkify(
-                      onOpen: (link) async {
-                        if (await canLaunch(link.url)) {
-                          await launch(link.url);
-                        } else {
-                          throw 'Could not launch $link';
-                        }
-                      },
-                      text: messageSnapshot['text'])),
-          messageSnapshot['repliesCount'] > 0
-              ? new Text(
-                  repliesCountLabel,
-                  style: TextStyle(color: Colors.grey, fontSize: 10.0),
-                )
-              : null
-        ],
+            new Text(messageSnapshot['sender']['name'],
+                style: new TextStyle(
+                    fontSize: 14.0,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold)),
+            new Container(
+                margin: const EdgeInsets.only(top: 5.0),
+                child: messageSnapshot['imageURL'] != null
+                    ? FadeInImage(
+                        image: NetworkImage(messageSnapshot['imageURL']),
+                        placeholder: AssetImage('assets/placeholder-image.png'),
+                        width: 200.0,
+                      )
+                    : new Linkify(
+                        onOpen: (link) async {
+                          if (await canLaunch(link.url)) {
+                            await launch(link.url);
+                          } else {
+                            throw 'Could not launch $link';
+                          }
+                        },
+                        text: messageSnapshot['text'],
+                        style: TextStyle(fontSize: 16.0, color: Colors.black),
+                      )),
+            messageSnapshot['imageURL'] != null
+                ? null
+                : messageSnapshot['repliesCount'] > 0
+                    ? new Text(
+                        repliesCountLabel,
+                        style: TextStyle(color: Colors.grey, fontSize: 10.0),
+                      )
+                    : null
+          ].where((c) => c != null).toList(),
       ))
     ];
   }

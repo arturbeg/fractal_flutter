@@ -15,14 +15,14 @@ import './model/message.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 // import './chat//chatscreen.dart';
 
-// Widget getErrorWidget(BuildContext context, FlutterErrorDetails error) {
-//   return Center(
-//     child: Text(
-//       "", // TODO: short term cheating Error Appeared
-//       style: Theme.of(context).textTheme.title.copyWith(color: Colors.white),
-//     ),
-//   );
-// }
+Widget getErrorWidget(BuildContext context, FlutterErrorDetails error) {
+  return Center(
+    child: Text(
+      "", // TODO: short term cheating Error Appeared
+      style: Theme.of(context).textTheme.title.copyWith(color: Colors.white),
+    ),
+  );
+}
 
 void main() {
   runApp(LoginPage());
@@ -92,51 +92,52 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
 
-    _firebaseMessaging.requestNotificationPermissions(
-        const IosNotificationSettings(sound: true, badge: true, alert: true));
+    // TODO: enable the notifications in the next update
+    // _firebaseMessaging.requestNotificationPermissions(
+    //     const IosNotificationSettings(sound: true, badge: true, alert: true));
 
-    _firebaseMessaging.configure(
-      onMessage: (Map<String, dynamic> message) async {},
-      onLaunch: (Map<String, dynamic> message) async {
-        final data = message['data'];
-        Firestore.instance
-            .collection("chats")
-            .document(data['chatId'])
-            .get()
-            .then((chatDocument) {
-          print("Chat Id");
-          print(chatDocument.documentID);
-          var document = ChatModel();
-          document.setChatModelFromDocumentSnapshot(chatDocument);
+    // _firebaseMessaging.configure(
+    //   onMessage: (Map<String, dynamic> message) async {},
+    //   onLaunch: (Map<String, dynamic> message) async {
+    //     final data = message['data'];
+    //     Firestore.instance
+    //         .collection("chats")
+    //         .document(data['chatId'])
+    //         .get()
+    //         .then((chatDocument) {
+    //       print("Chat Id");
+    //       print(chatDocument.documentID);
+    //       var document = ChatModel();
+    //       document.setChatModelFromDocumentSnapshot(chatDocument);
 
-          Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
-            var document = ChatModel();
-            document.setChatModelFromDocumentSnapshot(chatDocument);
-            return new ChatScreen(chatDocument: document);
-          }));
-        });
-      },
-      onResume: (Map<String, dynamic> message) async {
-        final data = message['data'];
-        print(data['chatId']);
-        Firestore.instance
-            .collection("chats")
-            .document(data['chatId'])
-            .get()
-            .then((chatDocument) {
-          print("Chat Id");
-          print(chatDocument.documentID);
-          var document = ChatModel();
-          document.setChatModelFromDocumentSnapshot(chatDocument);
+    //       Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
+    //         var document = ChatModel();
+    //         document.setChatModelFromDocumentSnapshot(chatDocument);
+    //         return new ChatScreen(chatDocument: document);
+    //       }));
+    //     });
+    //   },
+    //   onResume: (Map<String, dynamic> message) async {
+    //     final data = message['data'];
+    //     print(data['chatId']);
+    //     Firestore.instance
+    //         .collection("chats")
+    //         .document(data['chatId'])
+    //         .get()
+    //         .then((chatDocument) {
+    //       print("Chat Id");
+    //       print(chatDocument.documentID);
+    //       var document = ChatModel();
+    //       document.setChatModelFromDocumentSnapshot(chatDocument);
 
-          Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
-            var document = ChatModel();
-            document.setChatModelFromDocumentSnapshot(chatDocument);
-            return new ChatScreen(chatDocument: document);
-          }));
-        });
-      },
-    );
+    //       Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
+    //         var document = ChatModel();
+    //         document.setChatModelFromDocumentSnapshot(chatDocument);
+    //         return new ChatScreen(chatDocument: document);
+    //       }));
+    //     });
+    //   },
+    // );
 
     this._function(); // check if user already logged in from the shared preferences
   }
@@ -286,9 +287,9 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    // ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
-    //   return getErrorWidget(context, errorDetails);
-    // };
+    ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
+      return getErrorWidget(context, errorDetails);
+    };
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,

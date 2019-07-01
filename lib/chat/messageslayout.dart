@@ -9,40 +9,48 @@ class MessagesList extends StatelessWidget {
   MessagesList({this.chatDocument});
 
   // TODO: use a placeholder for the messages to display instead of loading?
-
   @override
   Widget build(BuildContext context) {
-    return new Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: StreamBuilder<QuerySnapshot>(
-          stream: Firestore.instance
-              .collection('messages')
-              .where('chatId', isEqualTo: chatDocument.id)
-              .orderBy('timestamp', descending: true)
-              .limit(200) // can adjust later
-              .snapshots(),
-          builder:
-              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-            if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
-            if (snapshot.data != null) {
-              return new ListView.builder(
-                // sort: (a, b) => b.key.compareTo(a.key),
-                reverse: true,
-                itemCount: snapshot.data.documents.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return new Container(
-                    padding: EdgeInsets.all(8.0),
-                    child: new ChatMessageListItem(messageSnapshot: snapshot.data.documents[index],),
-                  );
-                },
-              );
-            } else {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-          },
-        ));
+    return new GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onPanDown: (_) {
+        FocusScope.of(context).requestFocus(FocusNode());
+      },
+      child: new Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: StreamBuilder<QuerySnapshot>(
+            stream: Firestore.instance
+                .collection('messages')
+                .where('chatId', isEqualTo: chatDocument.id)
+                .orderBy('timestamp', descending: true)
+                .limit(200) // can adjust later
+                .snapshots(),
+            builder:
+                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              if (snapshot.hasError)
+                return new Text('Error: ${snapshot.error}');
+              if (snapshot.data != null) {
+                return new ListView.builder(
+                  // sort: (a, b) => b.key.compareTo(a.key),
+                  reverse: true,
+                  itemCount: snapshot.data.documents.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return new Container(
+                      padding: EdgeInsets.all(8.0),
+                      child: new ChatMessageListItem(
+                        messageSnapshot: snapshot.data.documents[index],
+                      ),
+                    );
+                  },
+                );
+              } else {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+            },
+          )),
+    );
   }
 }
 

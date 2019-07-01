@@ -336,49 +336,55 @@ class ChatScreenState extends State<ChatScreen> {
             children: <Widget>[
               new Container(
                 margin: new EdgeInsets.symmetric(horizontal: 4.0),
-                child: _isUploadingPhoto ? CircularProgressIndicator() : IconButton(
-                    icon: new Icon(
-                      Icons.photo_camera,
-                      color: Theme.of(context).accentColor,
-                      size: 32.0,
-                    ),
-                    onPressed: () async {
-                      // await _ensureLoggedIn();
+                child: _isUploadingPhoto
+                    ? CircularProgressIndicator()
+                    : IconButton(
+                        icon: new Icon(
+                          Icons.photo_camera,
+                          color: Theme.of(context).accentColor,
+                          size: 32.0,
+                        ),
+                        onPressed: () async {
+                          // await _ensureLoggedIn();
 
-                      if (!_isUploadingPhoto) {
-                        setState(() {
-                          _isUploadingPhoto = true;
-                        });
-                        File imageFile = await ImagePicker.pickImage(
-                            source: ImageSource.gallery);
-                        int timestamp =
-                            new DateTime.now().millisecondsSinceEpoch;
-                        StorageReference storageReference = FirebaseStorage
-                            .instance
-                            .ref()
-                            .child("img_" + timestamp.toString() + ".jpg");
+                          if (!_isUploadingPhoto) {
+                            setState(() {
+                              _isUploadingPhoto = true;
+                            });
+                            File imageFile = await ImagePicker.pickImage(
+                                source: ImageSource.gallery);
+                            if (imageFile == null) {
+                              setState(() {
+                                _isUploadingPhoto = false;
+                              });
+                            }
+                            int timestamp =
+                                new DateTime.now().millisecondsSinceEpoch;
+                            StorageReference storageReference = FirebaseStorage
+                                .instance
+                                .ref()
+                                .child("img_" + timestamp.toString() + ".jpg");
 
-                        StorageUploadTask uploadTask =
-                            storageReference.putFile(imageFile);
+                            StorageUploadTask uploadTask =
+                                storageReference.putFile(imageFile);
 
-                        StorageTaskSnapshot storageTaskSnapshot =
-                            await uploadTask.onComplete; 
+                            StorageTaskSnapshot storageTaskSnapshot =
+                                await uploadTask.onComplete;
 
-                        storageTaskSnapshot.ref
-                            .getDownloadURL()
-                            .then((downloadUrl) {
-                          //print(downloadUrl);
-                          _sendMessage(
-                              messageText: null,
-                              imageUrl: downloadUrl.toString());
+                            storageTaskSnapshot.ref
+                                .getDownloadURL()
+                                .then((downloadUrl) {
+                              //print(downloadUrl);
+                              _sendMessage(
+                                  messageText: null,
+                                  imageUrl: downloadUrl.toString());
 
-                          setState(() {
-                            _isUploadingPhoto = false;
-                          });    
-                          
-                        });
-                      }
-                    }),
+                              setState(() {
+                                _isUploadingPhoto = false;
+                              });
+                            });
+                          }
+                        }),
               ),
               new Flexible(
                 child: new TextField(
