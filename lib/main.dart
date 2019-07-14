@@ -13,6 +13,8 @@ import './chat/algolia.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import './model/message.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_auth_buttons/flutter_auth_buttons.dart';
+
 // import './chat//chatscreen.dart';
 
 Widget getErrorWidget(BuildContext context, FlutterErrorDetails error) {
@@ -411,11 +413,11 @@ class _LoginPageState extends State<LoginPage> {
     if (showCircularProgress) {
       return Center(child: CircularProgressIndicator());
     } else {
+      // TODO: make the button more appealing
       return Center(
-        child: RaisedButton(
-          child: Text("Sign in with Facebook"),
-          onPressed: () => initiateFacebookLogin(),
-        ),
+        child: FacebookSignInButton(onPressed: () {
+          initiateFacebookLogin();
+        }),
       );
     }
   }
@@ -434,7 +436,5 @@ class _LoginPageState extends State<LoginPage> {
 
     _auth.signOut();
     onLoginStatusChanged(false);
-
-
   }
 }
