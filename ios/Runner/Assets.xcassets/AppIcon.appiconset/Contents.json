@@ -1,117 +1,111 @@
 {
   "images" : [
+	{
+      "size" : "20x20",
+      "idiom": "iphone",
+	  "filename" : "fractal_no_alpha-20@2x.png",
+      "scale": "2x"
+    },
+	{
+      "size" : "20x20",
+      "idiom": "iphone",
+	  "filename" : "fractal_no_alpha-20@3x.png",
+      "scale": "3x"
+    },
+	{
+      "size" : "20x20",
+      "idiom": "ipad",
+	  "filename" : "fractal_no_alpha-20.png",
+      "scale": "1x"
+    },
     {
       "size" : "20x20",
+      "idiom": "ipad",
+	  "filename" : "fractal_no_alpha-20@2x.png",
+      "scale": "2x"
+    },
+    {
+      "size" : "29x29",
       "idiom" : "iphone",
-      "filename" : "whitelogo-20@2x-1.png",
+      "filename" : "fractal_no_alpha-29@2x.png",
       "scale" : "2x"
     },
     {
-      "size" : "20x20",
-      "idiom" : "iphone",
-      "filename" : "whitelogo-20@3x.png",
-      "scale" : "3x"
-    },
-    {
       "size" : "29x29",
       "idiom" : "iphone",
-      "filename" : "fractal-29.png",
-      "scale" : "1x"
-    },
-    {
-      "size" : "29x29",
-      "idiom" : "iphone",
-      "filename" : "fractal-29@2x.png",
-      "scale" : "2x"
-    },
-    {
-      "size" : "29x29",
-      "idiom" : "iphone",
-      "filename" : "fractal-29@3x.png",
+      "filename" : "fractal_no_alpha-29@3x.png",
       "scale" : "3x"
     },
     {
       "size" : "40x40",
       "idiom" : "iphone",
-      "filename" : "fractal-40@2x.png",
+      "filename" : "fractal_no_alpha-40@2x.png",
       "scale" : "2x"
     },
     {
       "size" : "40x40",
       "idiom" : "iphone",
-      "filename" : "fractal-40@3x.png",
+      "filename" : "fractal_no_alpha-40@3x.png",
       "scale" : "3x"
     },
     {
       "size" : "60x60",
       "idiom" : "iphone",
-      "filename" : "fractal-60@2x.png",
+      "filename" : "fractal_no_alpha-60@2x.png",
       "scale" : "2x"
     },
     {
       "size" : "60x60",
       "idiom" : "iphone",
-      "filename" : "fractal-60@3x.png",
+      "filename" : "fractal_no_alpha-60@3x.png",
       "scale" : "3x"
     },
     {
-      "size" : "20x20",
-      "idiom" : "ipad",
-      "filename" : "whitelogo-20.png",
-      "scale" : "1x"
-    },
-    {
-      "size" : "20x20",
-      "idiom" : "ipad",
-      "filename" : "whitelogo-20@2x.png",
-      "scale" : "2x"
-    },
-    {
       "size" : "29x29",
       "idiom" : "ipad",
-      "filename" : "whitelogo-29.png",
+      "filename" : "fractal_no_alpha-29.png",
       "scale" : "1x"
     },
     {
       "size" : "29x29",
       "idiom" : "ipad",
-      "filename" : "whitelogo-29@2x.png",
+      "filename" : "fractal_no_alpha-29@2x.png",
       "scale" : "2x"
     },
     {
       "size" : "40x40",
       "idiom" : "ipad",
-      "filename" : "fractal-40.png",
+      "filename" : "fractal_no_alpha-40.png",
       "scale" : "1x"
     },
     {
       "size" : "40x40",
       "idiom" : "ipad",
-      "filename" : "whitelogo-40@2x.png",
+      "filename" : "fractal_no_alpha-40@2x.png",
       "scale" : "2x"
     },
     {
       "size" : "76x76",
       "idiom" : "ipad",
-      "filename" : "fractal-76.png",
+      "filename" : "fractal_no_alpha-76.png",
       "scale" : "1x"
     },
     {
       "size" : "76x76",
       "idiom" : "ipad",
-      "filename" : "whitelogo-76@2x.png",
+      "filename" : "fractal_no_alpha-76@2x.png",
       "scale" : "2x"
     },
     {
       "size" : "83.5x83.5",
       "idiom" : "ipad",
-      "filename" : "whitelogo-83.5@2x.png",
+      "filename" : "fractal_no_alpha-83.5@2x.png",
       "scale" : "2x"
     },
     {
       "size" : "1024x1024",
       "idiom" : "ios-marketing",
-      "filename" : "whitelogo-1025.png",
+      "filename" : "fractal_no_alpha-1024.png",
       "scale" : "1x"
     }
   ],

@@ -6,6 +6,8 @@ import './pages/subreddits.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:core';
 import './auth_state.dart';
+import './login.dart';
+
 
 class WhatsAppHome extends StatefulWidget {
   final DocumentSnapshot userDocument;
@@ -19,16 +21,16 @@ class _WhatsAppHomeState extends State<WhatsAppHome>
     with SingleTickerProviderStateMixin {
   int _selectedIndex = 1;
 
+  // depends on the loggedIn status
+  
   final _widgetOptions = [
     chats(),
-    // explore(),
     SubredditsScreen(),
-    profile(userDocument: AuthState.currentUser)
+    LoginPage()
   ];
 
+
   _onItemTapped(int index) {
-    // //print("Tap tap");
-    //print(index);
     setState(() {
       _selectedIndex = index;
     });

@@ -87,7 +87,6 @@ class ChatMessageListItem extends StatelessWidget {
     });
 
     chatDocumentReference.get().then((chatDocument) {
-      //print("Got the newly created subchat");
       var document = ChatModel();
       document.setChatModelFromDocumentSnapshot(chatDocument);
 
@@ -106,27 +105,32 @@ class ChatMessageListItem extends StatelessWidget {
       onDoubleTap: () {
         // If message subchat exists --> open it
         // If message subchat does not exist --> create subchat and navigate to it
-        if (messageSnapshot['imageURL'] == null) {
-          _getMessageHasSubchat(messageSnapshot).then((hasSubchat) {
-            if (hasSubchat) {
-              _openSubchat(messageSnapshot, context);
-            } else {
-              final subchatName = messageSnapshot['text'];
-              _createSubchat(subchatName, messageSnapshot, context);
-            }
-          });
+        // TODO: refactor DRY
+        if (AuthState.currentUser != null) {
+          if (messageSnapshot['imageURL'] == null) {
+            _getMessageHasSubchat(messageSnapshot).then((hasSubchat) {
+              if (hasSubchat) {
+                _openSubchat(messageSnapshot, context);
+              } else {
+                final subchatName = messageSnapshot['text'];
+                _createSubchat(subchatName, messageSnapshot, context);
+              }
+            });
+          }
         }
       },
       onLongPress: () {
-        if (messageSnapshot['imageURL'] == null) {
-          _getMessageHasSubchat(messageSnapshot).then((hasSubchat) {
-            if (hasSubchat) {
-              _openSubchat(messageSnapshot, context);
-            } else {
-              final subchatName = messageSnapshot['text'];
-              _createSubchat(subchatName, messageSnapshot, context);
-            }
-          });
+        if (AuthState.currentUser != null) {
+          if (messageSnapshot['imageURL'] == null) {
+            _getMessageHasSubchat(messageSnapshot).then((hasSubchat) {
+              if (hasSubchat) {
+                _openSubchat(messageSnapshot, context);
+              } else {
+                final subchatName = messageSnapshot['text'];
+                _createSubchat(subchatName, messageSnapshot, context);
+              }
+            });
+          }
         }
       },
       // onForcePressStart: () {
@@ -140,8 +144,7 @@ class ChatMessageListItem extends StatelessWidget {
       //   });
       // },
       child: Row(
-          children: messageSnapshot['sender']['id'] ==
-                  AuthState.currentUser.documentID
+          children: _isSentMessage(messageSnapshot['sender']['id'])
               ? getSentMessageLayout()
               : getReceivedMessageLayout()),
     );
@@ -152,6 +155,14 @@ class ChatMessageListItem extends StatelessWidget {
     //     children: getReceivedMessageLayout(),
     //   )
     // );
+  }
+
+  bool _isSentMessage(senderID) {
+    if(AuthState.currentUser != null) {
+      return AuthState.currentUser.documentID == senderID;
+    } else {
+      return false;
+    }
   }
 
   List<Widget> getReceivedMessageLayout() {
@@ -167,7 +178,7 @@ class ChatMessageListItem extends StatelessWidget {
               margin: const EdgeInsets.only(right: 8.0),
               child: new CircleAvatar(
                 backgroundImage: new NetworkImage(
-                    'https://graph.facebook.com/${messageSnapshot['sender']['facebookID']}/picture?height=80'),
+                    'https://graph.facebook.com/${messageSnapshot['sender']['facebookID']}/picture?height=50'),
                 //AssetImage('assets/default-avatar.png'),
               )),
         ],
@@ -214,10 +225,6 @@ class ChatMessageListItem extends StatelessWidget {
   }
 
   List<Widget> getSentMessageLayout() {
-    // String subchatsCount = messageSnapshot['subchatsCount'].toString();
-    // String subchatsCountLabel = messageSnapshot['subchatsCount'] > 1
-    //     ? subchatsCount + ' subchats'
-    //     : subchatsCount + ' subchat';
     String repliesCount = messageSnapshot['repliesCount'].toString();
     String repliesCountLabel = messageSnapshot['repliesCount'] > 1
         ? repliesCount + ' replies'

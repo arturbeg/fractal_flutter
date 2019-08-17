@@ -1,4 +1,3 @@
-// Version 1.1
 import 'dart:async';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -7,13 +6,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import './messageslayout.dart';
-import './aboutChat.dart';
 import './chatDetail.dart';
-import './editChatPage.dart';
 import '../auth_state.dart';
 import '../model/models.dart';
-import '../auth_state.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import '../login.dart';
 
 class ChatScreen extends StatefulWidget {
   ChatModel chatDocument; // not a final because can change through the edit
@@ -29,80 +25,29 @@ class ChatScreenState extends State<ChatScreen> {
   final TextEditingController _textEditingController =
       new TextEditingController();
   bool _isComposingMessage = false;
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
   File imageFile;
   String imageURL;
   bool chatJoined = false;
   bool isChatOwner = false;
-
-  // reference to the database in here
-  final Firestore _db = Firestore.instance;
   final reference = Firestore.instance.collection('messages');
 
   final ScrollController listScrollController = new ScrollController();
   final FocusNode focusNode = new FocusNode();
-
-  DocumentSnapshot currentUser;
 
   bool _isUploadingPhoto = false;
 
   void initState() {
     super.initState();
 
-    currentUser = AuthState.currentUser;
-    //print("THE CURRENT USER IS:");
-    //print(currentUser['name']);
-
-    _isChatJoined().then((isJoined) {
-      setState(() {
-        chatJoined = isJoined;
+    if (AuthState.currentUser != null) {
+      _isChatJoined().then((isJoined) {
+        setState(() {
+          chatJoined = isJoined;
+        });
       });
-    });
 
-    _checkUserIsChatOwner();
-
-    _firebaseMessaging.configure(
-      onMessage: (Map<String, dynamic> message) async {},
-      onLaunch: (Map<String, dynamic> message) async {
-        final data = message['data'];
-        Firestore.instance
-            .collection("chats")
-            .document(data['chatId'])
-            .get()
-            .then((chatDocument) {
-          print("Chat Id");
-          print(chatDocument.documentID);
-          var document = ChatModel();
-          document.setChatModelFromDocumentSnapshot(chatDocument);
-
-          Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
-            var document = ChatModel();
-            document.setChatModelFromDocumentSnapshot(chatDocument);
-            return new ChatScreen(chatDocument: document);
-          }));
-        });
-      },
-      onResume: (Map<String, dynamic> message) async {
-        final data = message['data'];
-        print(data['chatId']);
-        Firestore.instance
-            .collection("chats")
-            .document(data['chatId'])
-            .get()
-            .then((chatDocument) {
-          print("Chat Id");
-          print(chatDocument.documentID);
-          var document = ChatModel();
-          document.setChatModelFromDocumentSnapshot(chatDocument);
-
-          Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
-            var document = ChatModel();
-            document.setChatModelFromDocumentSnapshot(chatDocument);
-            return new ChatScreen(chatDocument: document);
-          }));
-        });
-      },
-    );
+      _checkUserIsChatOwner();
+    }
   }
 
   Future<bool> _isChatJoined() async {
@@ -127,7 +72,6 @@ class ChatScreenState extends State<ChatScreen> {
         .then((snapshot) {
       for (DocumentSnapshot ds in snapshot.documents) {
         ds.reference.delete();
-        _firebaseMessaging.unsubscribeFromTopic(widget.chatDocument.id);
       }
     });
 
@@ -170,8 +114,6 @@ class ChatScreenState extends State<ChatScreen> {
       },
     });
 
-    _firebaseMessaging.subscribeToTopic(widget.chatDocument.id);
-
     // TODO: check if the action was actually successful, otherwise there would be duplicated
     setState(() {
       chatJoined = true;
@@ -185,32 +127,7 @@ class ChatScreenState extends State<ChatScreen> {
     StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
     storageTaskSnapshot.ref.getDownloadURL().then((downloadUrl) {
       imageURL = downloadUrl;
-      // setState(() {
-      //   onSendMessage(imageURL, 1);
-      // });
-    }, onError: (err) {
-      // setState(() {
-      //   isLoading = false;
-      // });
-      // Fluttertoast.showToast(msg: 'This file is not an image');
-      //print("This file is not an image");
-    });
-  }
-
-  _handleEdit() async {
-    final result =
-        await Navigator.push(context, new MaterialPageRoute(builder: (context) {
-      return new EditChat(
-        chatDocument: widget.chatDocument,
-      );
-    }));
-
-    if (result != null) {
-      // means that the user didnt edit anything and just pressed the back button
-      setState(() {
-        widget.chatDocument = result;
-      });
-    }
+    }, onError: (err) {});
   }
 
   _buildAppBarActions() {
@@ -240,7 +157,6 @@ class ChatScreenState extends State<ChatScreen> {
         IconButton(
           icon: chatJoined ? Icon(Icons.bookmark) : Icon(Icons.bookmark_border),
           onPressed: () {
-            //print("Button pressed");
             if (!chatJoined) {
               _joinChat();
             } else {
@@ -275,7 +191,7 @@ class ChatScreenState extends State<ChatScreen> {
             },
             child: new Text(widget.chatDocument.name),
           ),
-          actions: _buildAppBarActions(),
+          actions: AuthState.currentUser != null ? _buildAppBarActions() : null,
         ),
         body: new Container(
           child: new Column(
@@ -288,7 +204,9 @@ class ChatScreenState extends State<ChatScreen> {
               new Container(
                 decoration:
                     new BoxDecoration(color: Theme.of(context).cardColor),
-                child: _buildTextComposer(),
+                child: AuthState.currentUser != null
+                    ? _buildTextComposer()
+                    : _buildRequestToLogIn(),
               ),
               new Builder(builder: (BuildContext context) {
                 return new Container(width: 0.0, height: 0.0);
@@ -320,6 +238,21 @@ class ChatScreenState extends State<ChatScreen> {
       onPressed: _isComposingMessage
           ? () => _textMessageSubmitted(_textEditingController.text)
           : null,
+    );
+  }
+
+  Widget _buildRequestToLogIn() {
+    return new SizedBox(
+      width: double.infinity,
+      child: new FlatButton(
+        child: Text('Log in to chat'),
+        textColor: Colors.black,
+        onPressed: () {
+          Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
+            return new LoginPage(redirectBack: true);
+          }));
+        },
+      ),
     );
   }
 
@@ -442,9 +375,9 @@ class ChatScreenState extends State<ChatScreen> {
         'text': messageText,
         'timestamp': firestoreTimestamp,
         'sender': {
-          'facebookID': currentUser['facebookID'],
-          'id': currentUser.documentID,
-          'name': currentUser['name']
+          'facebookID': AuthState.currentUser['facebookID'],
+          'id': AuthState.currentUser.documentID,
+          'name': AuthState.currentUser['name']
         },
         'repliesCount':
             0 // 0 either means no chat created or no messages in the thread, so not displaying anythign

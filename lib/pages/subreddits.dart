@@ -58,7 +58,7 @@ class TopicsList extends StatelessWidget {
                 ),
                 // TODO: add JSON API in here
                 // Text(desc.length > 32 ? "${desc.substring(0, 32)}..." : desc)
-                Text("A place for major news from...")
+                Text("A place for major news...")
               ],
             ),
           );
