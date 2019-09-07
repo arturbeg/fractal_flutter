@@ -11,16 +11,44 @@ import '../model/models.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import '../login.dart';
 import 'package:logging/logging.dart';
+import 'package:async/async.dart';
 
-class ChatMessageListItem extends StatelessWidget {
+class ChatMessageListItem extends StatefulWidget {
   final DocumentSnapshot messageSnapshot;
 
-  // final Animation animation;
-  // ChatMessageListItem({this.animation});
-  // String messageText;
-  // String senderName;
-
   ChatMessageListItem({this.messageSnapshot});
+
+  @override
+  _ChatMessageListItemState createState() => _ChatMessageListItemState();
+}
+
+class _ChatMessageListItemState extends State<ChatMessageListItem> {
+  final AsyncMemoizer _memoizer = AsyncMemoizer();
+  bool isSenderBlocked;
+
+  @override
+  void initState() {
+    super.initState();
+    final senderId = widget.messageSnapshot['sender']['id'];
+    Firestore.instance
+        .collection('users')
+        .document(AuthState.currentUser.documentID)
+        .get()
+        .then((userDocument) {
+      if (userDocument.data.containsKey('blockedUsers')) {
+        final List blockedUsers = userDocument.data['blockedUsers'];
+        setState(() {
+          isSenderBlocked = blockedUsers.contains(senderId);
+        });
+        // return blockedUsers.contains(senderId);
+      } else {
+        setState(() {
+          isSenderBlocked = false;
+        });
+        // return false;
+      }
+    });
+  }
 
   Future<bool> _getMessageHasSubchat(DocumentSnapshot messageSnapshot) async {
     final QuerySnapshot result = await Firestore.instance
@@ -53,86 +81,72 @@ class ChatMessageListItem extends StatelessWidget {
     }));
   }
 
-  Future<bool> _isSenderBlocked() async {
-    // Check if the sender of the message is blocked by the current user
-    // TODO: make sure AuthState gets updated when the user objects gets updated on Firestore
-    // TODO: dry common checks (using helper functions)
-    final senderId = messageSnapshot['sender']['id'];
-    return Firestore.instance
-        .collection('users')
-        .document(AuthState.currentUser.documentID)
-        .get()
-        .then((userDocument) {
-      if (userDocument.data.containsKey('blockedUsers')) {
-        final List blockedUsers = userDocument.data['blockedUsers'];
-        return blockedUsers.contains(senderId);
-      } else {
-        return false;
-      }
+  onBlockChange(senderBlocked) {
+    setState(() {
+      isSenderBlocked = senderBlocked;
     });
   }
 
-  _buildMessage(context) {
-    return FutureBuilder(
-        future: _isSenderBlocked(),
-        builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.active:
-            case ConnectionState.none:
-              // return Text("");
-            case ConnectionState.waiting:
-              return Text("");
-            case ConnectionState.done:
+  // _isSenderBlocked() {
+  //   return this._memoizer.runOnce(() async {
+  //     final senderId = widget.messageSnapshot['sender']['id'];
+  //     return Firestore.instance
+  //         .collection('users')
+  //         .document(AuthState.currentUser.documentID)
+  //         .get()
+  //         .then((userDocument) {
+  //       if (userDocument.data.containsKey('blockedUsers')) {
+  //         final List blockedUsers = userDocument.data['blockedUsers'];
+  //         return blockedUsers.contains(senderId);
+  //       } else {
+  //         return false;
+  //       }
+  //     });
+  //   });
 
-              // if(snapshot.hasError) {
-              //   print("The future has an error");
-              // }
-              return snapshot.data
-                  ? _buildBlockedMessage()
-                  : new GestureDetector(
-                      onDoubleTap: () {
-                        // If message subchat exists --> open it
-                        // If message subchat does not exist --> create subchat and navigate to it
-                        // TODO: refactor DRY
-                        if (AuthState.currentUser != null) {
-                          if (messageSnapshot['imageURL'] == null) {
-                            _getMessageHasSubchat(messageSnapshot)
-                                .then((hasSubchat) {
-                              if (hasSubchat) {
-                                _openSubchat(messageSnapshot, context);
-                              } else {
-                                final subchatName = messageSnapshot['text'];
-                                _createSubchat(
-                                    subchatName, messageSnapshot, context);
-                              }
-                            });
-                          }
-                        }
-                      },
-                      onLongPress: () {
-                        if (AuthState.currentUser != null) {
-                          if (messageSnapshot['imageURL'] == null) {
-                            _getMessageHasSubchat(messageSnapshot)
-                                .then((hasSubchat) {
-                              if (hasSubchat) {
-                                _openSubchat(messageSnapshot, context);
-                              } else {
-                                final subchatName = messageSnapshot['text'];
-                                _createSubchat(
-                                    subchatName, messageSnapshot, context);
-                              }
-                            });
-                          }
-                        }
-                      },
-                      child: Row(
-                          children:
-                              _isSentMessage(messageSnapshot['sender']['id'])
-                                  ? getSentMessageLayout()
-                                  : getReceivedMessageLayout()),
-                    );
+  //   // Check if the sender of the message is blocked by the current user
+  //   // TODO: make sure AuthState gets updated when the user objects gets updated on Firestore
+  //   // TODO: dry common checks (using helper functions)
+  // }
+
+  _buildMessage(context) {
+    return new GestureDetector(
+      onDoubleTap: () {
+        // If message subchat exists --> open it
+        // If message subchat does not exist --> create subchat and navigate to it
+        // TODO: refactor DRY
+        if (AuthState.currentUser != null) {
+          if (widget.messageSnapshot['imageURL'] == null) {
+            _getMessageHasSubchat(widget.messageSnapshot).then((hasSubchat) {
+              if (hasSubchat) {
+                _openSubchat(widget.messageSnapshot, context);
+              } else {
+                final subchatName = widget.messageSnapshot['text'];
+                _createSubchat(subchatName, widget.messageSnapshot, context);
+              }
+            });
           }
-        });
+        }
+      },
+      onLongPress: () {
+        if (AuthState.currentUser != null) {
+          if (widget.messageSnapshot['imageURL'] == null) {
+            _getMessageHasSubchat(widget.messageSnapshot).then((hasSubchat) {
+              if (hasSubchat) {
+                _openSubchat(widget.messageSnapshot, context);
+              } else {
+                final subchatName = widget.messageSnapshot['text'];
+                _createSubchat(subchatName, widget.messageSnapshot, context);
+              }
+            });
+          }
+        }
+      },
+      child: Row(
+          children: _isSentMessage(widget.messageSnapshot['sender']['id'])
+              ? getSentMessageLayout()
+              : getReceivedMessageLayout()),
+    );
   }
 
   _buildBlockedMessage() {
@@ -187,6 +201,56 @@ class ChatMessageListItem extends StatelessWidget {
     });
   }
 
+  _buildBlockUserAction() {
+    return isSenderBlocked == null
+        ? null
+        : IconSlideAction(
+            caption: isSenderBlocked ? 'Unblock user' : 'Block user',
+            color: Colors.transparent,
+            icon: Icons.block,
+            foregroundColor: Colors.red,
+            onTap: () {
+              if (AuthState.currentUser != null) {
+                Firestore.instance.runTransaction((transaction) async {
+                  var documentReference = Firestore.instance
+                      .collection('users')
+                      .document(AuthState.currentUser.documentID);
+
+                  var data;
+
+                  if (isSenderBlocked) {
+                    data = {
+                      'blockedUsers': FieldValue.arrayRemove(
+                          [widget.messageSnapshot['sender']['id']])
+                    };
+                  } else {
+                    data = {
+                      'blockedUsers': FieldValue.arrayUnion(
+                          [widget.messageSnapshot['sender']['id']])
+                    };
+                  }
+
+                  await transaction.update(documentReference, data);
+
+                  Scaffold.of(context).showSnackBar(SnackBar(
+                    content: isSenderBlocked
+                        ? Text("User unblocked!")
+                        : Text("User blocked!"),
+                  ));
+
+                  setState(() {
+                    isSenderBlocked = !isSenderBlocked;
+                  });
+                });
+              } else {
+                Navigator.of(context)
+                    .push(new MaterialPageRoute(builder: (context) {
+                  return new LoginPage(redirectBack: true);
+                }));
+              }
+            });
+  }
+
   @override
   Widget build(BuildContext context) {
     // TODO: only allow branching of text messages
@@ -196,38 +260,7 @@ class ChatMessageListItem extends StatelessWidget {
     return new Slidable(
         actionPane: SlidableDrawerActionPane(),
         actionExtentRatio: 0.25,
-        actions: <Widget>[
-          IconSlideAction(
-              caption: 'Block user',
-              color: Colors.transparent,
-              icon: Icons.flag,
-              foregroundColor: Colors.red,
-              onTap: () {
-                if (AuthState.currentUser != null) {
-                  Firestore.instance.runTransaction((transaction) async {
-                    var documentReference = Firestore.instance
-                        .collection('users')
-                        .document(AuthState.currentUser.documentID);
-
-                    var data = {
-                      'blockedUsers': FieldValue.arrayUnion(
-                          [messageSnapshot['sender']['id']])
-                    };
-
-                    await transaction.update(documentReference, data);
-
-                    Scaffold.of(context).showSnackBar(SnackBar(
-                      content: Text("User blocked!"),
-                    ));
-                  });
-                } else {
-                  Navigator.of(context)
-                      .push(new MaterialPageRoute(builder: (context) {
-                    return new LoginPage(redirectBack: true);
-                  }));
-                }
-              }),
-        ],
+        actions: <Widget>[_buildBlockUserAction()],
         secondaryActions: <Widget>[
           IconSlideAction(
               caption: 'Report',
@@ -241,7 +274,7 @@ class ChatMessageListItem extends StatelessWidget {
 
                   reference.document().setData({
                     'userID': AuthState.currentUser.documentID,
-                    'messageID': messageSnapshot.documentID
+                    'messageID': widget.messageSnapshot.documentID
                   });
 
                   Scaffold.of(context).showSnackBar(SnackBar(
@@ -267,8 +300,8 @@ class ChatMessageListItem extends StatelessWidget {
   }
 
   List<Widget> getReceivedMessageLayout() {
-    String repliesCount = messageSnapshot['repliesCount'].toString();
-    String repliesCountLabel = messageSnapshot['repliesCount'] > 1
+    String repliesCount = widget.messageSnapshot['repliesCount'].toString();
+    String repliesCountLabel = widget.messageSnapshot['repliesCount'] > 1
         ? repliesCount + ' replies'
         : repliesCount + ' reply';
     return <Widget>[
@@ -279,7 +312,7 @@ class ChatMessageListItem extends StatelessWidget {
               margin: const EdgeInsets.only(right: 8.0),
               child: new CircleAvatar(
                 backgroundImage: new NetworkImage(
-                    'https://graph.facebook.com/${messageSnapshot['sender']['facebookID']}/picture?height=50'),
+                    'https://graph.facebook.com/${widget.messageSnapshot['sender']['facebookID']}/picture?height=50'),
                 //AssetImage('assets/default-avatar.png'),
               )),
         ],
@@ -288,33 +321,40 @@ class ChatMessageListItem extends StatelessWidget {
           child: new Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          new Text(messageSnapshot['sender']['name'],
+          new Text(widget.messageSnapshot['sender']['name'],
               style: new TextStyle(
                   fontSize: 14.0,
                   color: Colors.black,
                   fontWeight: FontWeight.bold)),
           new Container(
               margin: const EdgeInsets.only(top: 5.0),
-              child: messageSnapshot['imageURL'] != null
-                  ? FadeInImage(
-                      image: NetworkImage(messageSnapshot['imageURL']),
-                      placeholder: AssetImage('assets/placeholder-image.png'),
-                      width: 200.0,
-                    )
-                  : new Linkify(
-                      onOpen: (link) async {
-                        if (await canLaunch(link.url)) {
-                          await launch(link.url);
-                        } else {
-                          throw 'Could not launch $link';
-                        }
-                      },
-                      text: messageSnapshot['text'],
-                      style: TextStyle(fontSize: 16.0, color: Colors.black),
-                    )),
-          messageSnapshot['imageURL'] != null
+              child: isSenderBlocked == null
+                  ? Text("")
+                  : isSenderBlocked
+                      ? Text('Sender is blocked')
+                      : widget.messageSnapshot['imageURL'] != null
+                          ? FadeInImage(
+                              image: NetworkImage(
+                                  widget.messageSnapshot['imageURL']),
+                              placeholder:
+                                  AssetImage('assets/placeholder-image.png'),
+                              width: 200.0,
+                            )
+                          : new Linkify(
+                              onOpen: (link) async {
+                                if (await canLaunch(link.url)) {
+                                  await launch(link.url);
+                                } else {
+                                  throw 'Could not launch $link';
+                                }
+                              },
+                              text: widget.messageSnapshot['text'],
+                              style: TextStyle(
+                                  fontSize: 16.0, color: Colors.black),
+                            )),
+          widget.messageSnapshot['imageURL'] != null
               ? null
-              : messageSnapshot['repliesCount'] > 0
+              : widget.messageSnapshot['repliesCount'] > 0
                   ? new Text(
                       repliesCountLabel,
                       style: TextStyle(color: Colors.grey, fontSize: 10.0),
@@ -326,8 +366,8 @@ class ChatMessageListItem extends StatelessWidget {
   }
 
   List<Widget> getSentMessageLayout() {
-    String repliesCount = messageSnapshot['repliesCount'].toString();
-    String repliesCountLabel = messageSnapshot['repliesCount'] > 1
+    String repliesCount = widget.messageSnapshot['repliesCount'].toString();
+    String repliesCountLabel = widget.messageSnapshot['repliesCount'] > 1
         ? repliesCount + ' replies'
         : repliesCount + ' reply';
     return <Widget>[
@@ -335,33 +375,40 @@ class ChatMessageListItem extends StatelessWidget {
         child: new Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: <Widget>[
-            new Text(messageSnapshot['sender']['name'],
+            new Text(widget.messageSnapshot['sender']['name'],
                 style: new TextStyle(
                     fontSize: 14.0,
                     color: Colors.black,
                     fontWeight: FontWeight.bold)),
             new Container(
                 margin: const EdgeInsets.only(top: 5.0),
-                child: messageSnapshot['imageURL'] != null
-                    ? FadeInImage(
-                        image: NetworkImage(messageSnapshot['imageURL']),
-                        placeholder: AssetImage('assets/placeholder-image.png'),
-                        width: 200.0,
-                      )
-                    : new Linkify(
-                        onOpen: (link) async {
-                          if (await canLaunch(link.url)) {
-                            await launch(link.url);
-                          } else {
-                            throw 'Could not launch $link';
-                          }
-                        },
-                        text: messageSnapshot['text'],
-                        style: TextStyle(fontSize: 16.0, color: Colors.black),
-                      )),
-            messageSnapshot['imageURL'] != null
+                child: isSenderBlocked == null
+                    ? Text("")
+                    : isSenderBlocked
+                        ? Text('Sender is blocked')
+                        : widget.messageSnapshot['imageURL'] != null
+                            ? FadeInImage(
+                                image: NetworkImage(
+                                    widget.messageSnapshot['imageURL']),
+                                placeholder:
+                                    AssetImage('assets/placeholder-image.png'),
+                                width: 200.0,
+                              )
+                            : new Linkify(
+                                onOpen: (link) async {
+                                  if (await canLaunch(link.url)) {
+                                    await launch(link.url);
+                                  } else {
+                                    throw 'Could not launch $link';
+                                  }
+                                },
+                                text: widget.messageSnapshot['text'],
+                                style: TextStyle(
+                                    fontSize: 16.0, color: Colors.black),
+                              )),
+            widget.messageSnapshot['imageURL'] != null
                 ? null
-                : messageSnapshot['repliesCount'] > 0
+                : widget.messageSnapshot['repliesCount'] > 0
                     ? new Text(
                         repliesCountLabel,
                         style: TextStyle(color: Colors.grey, fontSize: 10.0),
@@ -377,7 +424,7 @@ class ChatMessageListItem extends StatelessWidget {
               margin: const EdgeInsets.only(left: 8.0),
               child: new CircleAvatar(
                 backgroundImage: new NetworkImage(
-                    'https://graph.facebook.com/${messageSnapshot['sender']['facebookID']}/picture?height=80'),
+                    'https://graph.facebook.com/${widget.messageSnapshot['sender']['facebookID']}/picture?height=80'),
                 //AssetImage('assets/default-avatar.png'),
               )),
         ],
