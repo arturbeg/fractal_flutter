@@ -8,13 +8,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_auth_buttons/flutter_auth_buttons.dart';
+import './terms_of_service.dart';
 
 // TODO: start using loggers
-
 class LoginPage extends StatefulWidget {
   bool redirectBack = false;
 
-  LoginPage({this.redirectBack=false});
+  LoginPage({this.redirectBack = false});
 
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -28,11 +28,30 @@ class _LoginPageState extends State<LoginPage> {
   DocumentSnapshot userDocument;
   var isLoggedIn = AuthState.currentUser != null;
 
+  _buildAppBar() {
+    return widget.redirectBack ? AppBar(
+        title: new Text("Profile")
+      ) : null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AuthState.currentUser!=null ? _displayUserData() : _displayLoginButton(),
-      floatingActionButton: AuthState.currentUser!=null
+      appBar: _buildAppBar(),
+      body: AuthState.currentUser != null
+          ? _displayUserData()
+          : _displayLoginButton(),
+      bottomNavigationBar: new Container(
+          height: 40.0,
+          child: GestureDetector(
+            onTap: () {
+              print("Here a url to terms and conditions");
+            },
+            //TODO: text dynamically changes depending on whether you are logged in or not
+            child: Center(child: Text("By creating an account, I accept Fractal's Terms of Service", style: TextStyle(fontSize: 12), textAlign: TextAlign.center,)),
+          )
+          ),
+      floatingActionButton: AuthState.currentUser != null
           ? FloatingActionButton(
               elevation: 0.6,
               onPressed: () => _logout(),
@@ -45,7 +64,6 @@ class _LoginPageState extends State<LoginPage> {
 
   void onLoginStatusChanged(bool isLoggedIn,
       {userDocument, String profileUrl}) async {
-    
     // setState(() {
     //   this.userDocument = userDocument;
     //   this.showCircularProgress = false;

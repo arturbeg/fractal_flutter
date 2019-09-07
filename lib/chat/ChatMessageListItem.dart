@@ -8,6 +8,9 @@ import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../chat/chatscreen.dart';
 import '../model/models.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import '../login.dart';
+import 'package:logging/logging.dart';
 
 class ChatMessageListItem extends StatelessWidget {
   final DocumentSnapshot messageSnapshot;
@@ -48,6 +51,92 @@ class ChatMessageListItem extends StatelessWidget {
       document.setChatModelFromDocumentSnapshot(chatDocument);
       return new ChatScreen(chatDocument: document);
     }));
+  }
+
+  Future<bool> _isSenderBlocked() async {
+    // Check if the sender of the message is blocked by the current user
+    // TODO: make sure AuthState gets updated when the user objects gets updated on Firestore
+    // TODO: dry common checks (using helper functions)
+    final senderId = messageSnapshot['sender']['id'];
+    return Firestore.instance
+        .collection('users')
+        .document(AuthState.currentUser.documentID)
+        .get()
+        .then((userDocument) {
+      if (userDocument.data.containsKey('blockedUsers')) {
+        final List blockedUsers = userDocument.data['blockedUsers'];
+        return blockedUsers.contains(senderId);
+      } else {
+        return false;
+      }
+    });
+  }
+
+  _buildMessage(context) {
+    return FutureBuilder(
+        future: _isSenderBlocked(),
+        builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.active:
+            case ConnectionState.none:
+              // return Text("");
+            case ConnectionState.waiting:
+              return Text("");
+            case ConnectionState.done:
+
+              // if(snapshot.hasError) {
+              //   print("The future has an error");
+              // }
+              return snapshot.data
+                  ? _buildBlockedMessage()
+                  : new GestureDetector(
+                      onDoubleTap: () {
+                        // If message subchat exists --> open it
+                        // If message subchat does not exist --> create subchat and navigate to it
+                        // TODO: refactor DRY
+                        if (AuthState.currentUser != null) {
+                          if (messageSnapshot['imageURL'] == null) {
+                            _getMessageHasSubchat(messageSnapshot)
+                                .then((hasSubchat) {
+                              if (hasSubchat) {
+                                _openSubchat(messageSnapshot, context);
+                              } else {
+                                final subchatName = messageSnapshot['text'];
+                                _createSubchat(
+                                    subchatName, messageSnapshot, context);
+                              }
+                            });
+                          }
+                        }
+                      },
+                      onLongPress: () {
+                        if (AuthState.currentUser != null) {
+                          if (messageSnapshot['imageURL'] == null) {
+                            _getMessageHasSubchat(messageSnapshot)
+                                .then((hasSubchat) {
+                              if (hasSubchat) {
+                                _openSubchat(messageSnapshot, context);
+                              } else {
+                                final subchatName = messageSnapshot['text'];
+                                _createSubchat(
+                                    subchatName, messageSnapshot, context);
+                              }
+                            });
+                          }
+                        }
+                      },
+                      child: Row(
+                          children:
+                              _isSentMessage(messageSnapshot['sender']['id'])
+                                  ? getSentMessageLayout()
+                                  : getReceivedMessageLayout()),
+                    );
+          }
+        });
+  }
+
+  _buildBlockedMessage() {
+    return Text('Sender of message is blocked!');
   }
 
   _createSubchat(
@@ -101,64 +190,76 @@ class ChatMessageListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // TODO: only allow branching of text messages
-    return new GestureDetector(
-      onDoubleTap: () {
-        // If message subchat exists --> open it
-        // If message subchat does not exist --> create subchat and navigate to it
-        // TODO: refactor DRY
-        if (AuthState.currentUser != null) {
-          if (messageSnapshot['imageURL'] == null) {
-            _getMessageHasSubchat(messageSnapshot).then((hasSubchat) {
-              if (hasSubchat) {
-                _openSubchat(messageSnapshot, context);
-              } else {
-                final subchatName = messageSnapshot['text'];
-                _createSubchat(subchatName, messageSnapshot, context);
-              }
-            });
-          }
-        }
-      },
-      onLongPress: () {
-        if (AuthState.currentUser != null) {
-          if (messageSnapshot['imageURL'] == null) {
-            _getMessageHasSubchat(messageSnapshot).then((hasSubchat) {
-              if (hasSubchat) {
-                _openSubchat(messageSnapshot, context);
-              } else {
-                final subchatName = messageSnapshot['text'];
-                _createSubchat(subchatName, messageSnapshot, context);
-              }
-            });
-          }
-        }
-      },
-      // onForcePressStart: () {
-      //   _getMessageHasSubchat(messageSnapshot).then((hasSubchat) {
-      //     if (hasSubchat) {
-      //       _openSubchat(messageSnapshot, context);
-      //     } else {
-      //       final subchatName = messageSnapshot['text'];
-      //       _createSubchat(subchatName, messageSnapshot, context);
-      //     }
-      //   });
-      // },
-      child: Row(
-          children: _isSentMessage(messageSnapshot['sender']['id'])
-              ? getSentMessageLayout()
-              : getReceivedMessageLayout()),
-    );
+    // TODO: refactor for slidable to only work for incoming messages
+    // TODO: check for blocked or not only performed on incoming messages
 
-    // return new SizeTransition(
-    //   sizeFactor: 1.0// new CurvedAnimation(parent: animation, curve: Curves.decelerate),
-    //   child: new Row(
-    //     children: getReceivedMessageLayout(),
-    //   )
-    // );
+    return new Slidable(
+        actionPane: SlidableDrawerActionPane(),
+        actionExtentRatio: 0.25,
+        actions: <Widget>[
+          IconSlideAction(
+              caption: 'Block user',
+              color: Colors.transparent,
+              icon: Icons.flag,
+              foregroundColor: Colors.red,
+              onTap: () {
+                if (AuthState.currentUser != null) {
+                  Firestore.instance.runTransaction((transaction) async {
+                    var documentReference = Firestore.instance
+                        .collection('users')
+                        .document(AuthState.currentUser.documentID);
+
+                    var data = {
+                      'blockedUsers': FieldValue.arrayUnion(
+                          [messageSnapshot['sender']['id']])
+                    };
+
+                    await transaction.update(documentReference, data);
+
+                    Scaffold.of(context).showSnackBar(SnackBar(
+                      content: Text("User blocked!"),
+                    ));
+                  });
+                } else {
+                  Navigator.of(context)
+                      .push(new MaterialPageRoute(builder: (context) {
+                    return new LoginPage(redirectBack: true);
+                  }));
+                }
+              }),
+        ],
+        secondaryActions: <Widget>[
+          IconSlideAction(
+              caption: 'Report',
+              color: Colors.transparent,
+              icon: Icons.flag,
+              foregroundColor: Colors.red,
+              onTap: () {
+                if (AuthState.currentUser != null) {
+                  final reference =
+                      Firestore.instance.collection('reportedMessages');
+
+                  reference.document().setData({
+                    'userID': AuthState.currentUser.documentID,
+                    'messageID': messageSnapshot.documentID
+                  });
+
+                  Scaffold.of(context).showSnackBar(SnackBar(
+                    content: Text("Message reported!"),
+                  ));
+                } else {
+                  Navigator.of(context)
+                      .push(new MaterialPageRoute(builder: (context) {
+                    return new LoginPage(redirectBack: true);
+                  }));
+                }
+              }),
+        ],
+        child: _buildMessage(context));
   }
 
   bool _isSentMessage(senderID) {
-    if(AuthState.currentUser != null) {
+    if (AuthState.currentUser != null) {
       return AuthState.currentUser.documentID == senderID;
     } else {
       return false;

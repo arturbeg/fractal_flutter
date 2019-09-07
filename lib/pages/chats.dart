@@ -8,14 +8,27 @@ import '../auth_state.dart';
 import '../login.dart';
 
 class chats extends StatefulWidget {
+
+  ChatState state; 
+
   @override
   State<StatefulWidget> createState() {
-    return new ChatState();
+    // need to expose the state for children to use
+    var state = new ChatState();  
+    return state;
   }
+
+
+
 }
 
 class ChatState extends State<chats> {
 
+  refresh() {
+    setState(() {
+      print("Connection established");
+    });
+  }
   _buildSavedChats(){ 
         return StreamBuilder<QuerySnapshot>(
       stream: Firestore.instance
@@ -37,7 +50,7 @@ class ChatState extends State<chats> {
                 chatDocument.setChatModelFromJoinedChatDocumentSnapshot(
                     snapshot.data.documents[index]);
                 return new 
-                ChatItem(chatDocument: chatDocument);
+                ChatItem(index: index, notifyParent: refresh, chatDocument: chatDocument,);
               },
             );
         }
