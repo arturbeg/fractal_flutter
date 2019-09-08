@@ -10,7 +10,6 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_auth_buttons/flutter_auth_buttons.dart';
 import './terms_of_service.dart';
 
-// TODO: start using loggers
 class LoginPage extends StatefulWidget {
   bool redirectBack = false;
 
@@ -29,13 +28,15 @@ class _LoginPageState extends State<LoginPage> {
   var isLoggedIn = AuthState.currentUser != null;
 
   _buildAppBar() {
-    return widget.redirectBack ? AppBar(
-        title: new Text("Profile")
-      ) : null;
+    return widget.redirectBack ? AppBar(title: new Text("Profile")) : null;
   }
 
   @override
   Widget build(BuildContext context) {
+    const loggedInUserText = "End User License Agreement";
+    const notLoggedInUserText =
+        "By creating an account, I accept Fractal's End User License Agreement";
+
     return Scaffold(
       appBar: _buildAppBar(),
       body: AuthState.currentUser != null
@@ -45,12 +46,20 @@ class _LoginPageState extends State<LoginPage> {
           height: 40.0,
           child: GestureDetector(
             onTap: () {
-              print("Here a url to terms and conditions");
+              Navigator.of(context)
+                  .push(new MaterialPageRoute(builder: (context) {
+                return new TermsOfService();
+              }));
             },
-            //TODO: text dynamically changes depending on whether you are logged in or not
-            child: Center(child: Text("By creating an account, I accept Fractal's Terms of Service", style: TextStyle(fontSize: 12), textAlign: TextAlign.center,)),
-          )
-          ),
+            child: Center(
+                child: Text(
+              AuthState.currentUser == null
+                  ? notLoggedInUserText
+                  : loggedInUserText,
+              style: TextStyle(fontSize: 12),
+              textAlign: TextAlign.center,
+            )),
+          )),
       floatingActionButton: AuthState.currentUser != null
           ? FloatingActionButton(
               elevation: 0.6,
