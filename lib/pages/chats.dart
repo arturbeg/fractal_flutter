@@ -8,29 +8,19 @@ import '../auth_state.dart';
 import '../login.dart';
 
 class chats extends StatefulWidget {
-
-  ChatState state; 
+  ChatState state;
 
   @override
   State<StatefulWidget> createState() {
     // need to expose the state for children to use
-    var state = new ChatState();  
+    var state = new ChatState();
     return state;
   }
-
-
-
 }
 
 class ChatState extends State<chats> {
-
-  refresh() {
-    setState(() {
-      print("Connection established");
-    });
-  }
-  _buildSavedChats(){ 
-        return StreamBuilder<QuerySnapshot>(
+  _buildSavedChats() {
+    return StreamBuilder<QuerySnapshot>(
       stream: Firestore.instance
           .collection('joinedChats')
           .where('user.id', isEqualTo: AuthState.currentUser.documentID)
@@ -49,8 +39,9 @@ class ChatState extends State<chats> {
                 var chatDocument = ChatModel();
                 chatDocument.setChatModelFromJoinedChatDocumentSnapshot(
                     snapshot.data.documents[index]);
-                return new 
-                ChatItem(index: index, notifyParent: refresh, chatDocument: chatDocument,);
+                return new ChatItem(
+                  chatDocument: chatDocument,
+                );
               },
             );
         }
@@ -60,7 +51,7 @@ class ChatState extends State<chats> {
 
   _buildSuggestionToLogIn() {
     return Center(
-      child: new SizedBox(
+        child: new SizedBox(
       width: double.infinity,
       child: new FlatButton(
         child: Text('Log in to see your saved chats'),
@@ -68,17 +59,16 @@ class ChatState extends State<chats> {
         onPressed: () {
           // print('pressed!');
           Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
-      return new LoginPage(redirectBack: true);
-    }));
+            return new LoginPage(redirectBack: true);
+          }));
         },
       ),
-    )
-      );
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
-    if(AuthState.currentUser == null) {
+    if (AuthState.currentUser == null) {
       return _buildSuggestionToLogIn();
     } else {
       return _buildSavedChats();

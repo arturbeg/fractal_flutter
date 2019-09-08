@@ -23,7 +23,7 @@ class ChatMessageListItem extends StatefulWidget {
 }
 
 class _ChatMessageListItemState extends State<ChatMessageListItem> {
-  final AsyncMemoizer _memoizer = AsyncMemoizer();
+  // final AsyncMemoizer _memoizer = AsyncMemoizer();
   bool isSenderBlocked;
 
   @override
@@ -40,12 +40,10 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
         setState(() {
           isSenderBlocked = blockedUsers.contains(senderId);
         });
-        // return blockedUsers.contains(senderId);
       } else {
         setState(() {
           isSenderBlocked = false;
         });
-        // return false;
       }
     });
   }
@@ -80,34 +78,6 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
       return new ChatScreen(chatDocument: document);
     }));
   }
-
-  onBlockChange(senderBlocked) {
-    setState(() {
-      isSenderBlocked = senderBlocked;
-    });
-  }
-
-  // _isSenderBlocked() {
-  //   return this._memoizer.runOnce(() async {
-  //     final senderId = widget.messageSnapshot['sender']['id'];
-  //     return Firestore.instance
-  //         .collection('users')
-  //         .document(AuthState.currentUser.documentID)
-  //         .get()
-  //         .then((userDocument) {
-  //       if (userDocument.data.containsKey('blockedUsers')) {
-  //         final List blockedUsers = userDocument.data['blockedUsers'];
-  //         return blockedUsers.contains(senderId);
-  //       } else {
-  //         return false;
-  //       }
-  //     });
-  //   });
-
-  //   // Check if the sender of the message is blocked by the current user
-  //   // TODO: make sure AuthState gets updated when the user objects gets updated on Firestore
-  //   // TODO: dry common checks (using helper functions)
-  // }
 
   _buildMessage(context) {
     return new GestureDetector(

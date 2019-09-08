@@ -11,14 +11,18 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import '../auth_state.dart';
 import '../login.dart';
 
-class ChatItem extends StatelessWidget {
-  // Can be a DocumentSnapshot, can also be a chat document retreived from Algolia
-
+class ChatItem extends StatefulWidget {
   final ChatModel chatDocument;
-  final bool isSubchat;
-  final String heroTag;
-  final Function() notifyParent;
-  final int index;
+
+  ChatItem({this.chatDocument});
+
+  @override
+  _ChatItemState createState() => _ChatItemState();
+}
+
+class _ChatItemState extends State<ChatItem> {
+  final bool isSubchat = false;
+  bool isChatReported;
 
   GlobalKey key = new GlobalKey();
 
@@ -28,16 +32,36 @@ class ChatItem extends StatelessWidget {
     content: Text("Message was successfully linked!"),
   );
 
-  ChatItem(
-      {this.chatDocument,
-      this.isSubchat = false,
-      this.parentMessageSnapshot,
-      this.heroTag = "defaultTag",
-      @required this.notifyParent,
-      this.index}); // check if key works
-
   _getShortenedName(String name) {
-    return name;
+    if (isChatReported == null) {
+      return "";
+    } else if (isChatReported) {
+      return "This chat is reported";
+    } else {
+      return name;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final chatId = widget.chatDocument.id;
+    Firestore.instance
+        .collection('users')
+        .document(AuthState.currentUser.documentID)
+        .get()
+        .then((userDocument) {
+      if (userDocument.data.containsKey('reportedChats')) {
+        final List reportedChats = userDocument.data['reportedChats'];
+        setState(() {
+          isChatReported = reportedChats.contains(chatId);
+        });
+      } else {
+        setState(() {
+          isChatReported = false;
+        });
+      }
+    });
   }
 
   String shortenNumber(int value) {
@@ -53,14 +77,14 @@ class ChatItem extends StatelessWidget {
 
   _buildChatItemListTile(context) {
     return ListTile(
-      leading: chatDocument.isSubchat
+      leading: widget.chatDocument.isSubchat
           ? null
           : new Container(
               child: Column(
               children: <Widget>[
-                Text(shortenNumber(chatDocument.reddit.reddit_score)),
+                Text(shortenNumber(widget.chatDocument.reddit.reddit_score)),
                 Text(
-                  timeago.format(chatDocument.lastMessageTimestamp,
+                  timeago.format(widget.chatDocument.lastMessageTimestamp,
                       locale: 'en_short'),
                   style: new TextStyle(color: Colors.grey, fontSize: 14.0),
                   textAlign: TextAlign.left,
@@ -74,7 +98,7 @@ class ChatItem extends StatelessWidget {
             children: <Widget>[
               new Flexible(
                 child: new Text(
-                  _getShortenedName(chatDocument.name),
+                  _getShortenedName(widget.chatDocument.name),
                   style: new TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
@@ -82,54 +106,108 @@ class ChatItem extends StatelessWidget {
           ),
         ],
       ),
-      subtitle: new Container(
-          padding: const EdgeInsets.only(top: 5.0),
-          child: StreamBuilder<QuerySnapshot>(
-            stream: Firestore.instance
-                .collection('messages')
-                .where('chatId', isEqualTo: chatDocument.id)
-                .orderBy("timestamp", descending: true)
-                .snapshots(),
-            builder:
-                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (snapshot.hasError) {
-                return new Text('Error: ${snapshot.error}');
-              }
-              if (snapshot.data != null) {
-                if (snapshot.data.documents.length > 0) {
-                  //print(snapshot.data.documents[0].data['text']);
-                  if (snapshot.data.documents[0].data['text'] == null) {
-                    String lastMessage = 'photo';
-                    return Row(children: <Widget>[
-                      new Icon(
-                        Icons.camera_alt,
-                        color: Colors.grey,
-                        size: 15.0,
-                      ),
-                      Text(lastMessage,
-                          style: TextStyle(color: Colors.grey, fontSize: 15.0))
-                    ]);
-                  } else {
-                    String lastMessage =
-                        snapshot.data.documents[0].data['text'].toString();
-                    return Text(lastMessage,
-                        style: TextStyle(color: Colors.grey, fontSize: 15.0));
-                  }
-                } else {
-                  return Text("No messages yet");
-                }
-              } else {
-                return Text("");
-              }
-            },
-          )),
+      subtitle: isChatReported == null
+          ? Text("No messages yet")
+          : isChatReported
+              ? Text("Swipe left to unreport")
+              : new Container(
+                  padding: const EdgeInsets.only(top: 5.0),
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: Firestore.instance
+                        .collection('messages')
+                        .where('chatId', isEqualTo: widget.chatDocument.id)
+                        .orderBy("timestamp", descending: true)
+                        .snapshots(),
+                    builder: (BuildContext context,
+                        AsyncSnapshot<QuerySnapshot> snapshot) {
+                      if (snapshot.hasError) {
+                        return new Text('Error: ${snapshot.error}');
+                      }
+                      if (snapshot.data != null) {
+                        if (snapshot.data.documents.length > 0) {
+                          if (snapshot.data.documents[0].data['text'] == null) {
+                            String lastMessage = 'photo';
+                            return Row(children: <Widget>[
+                              new Icon(
+                                Icons.camera_alt,
+                                color: Colors.grey,
+                                size: 15.0,
+                              ),
+                              Text(lastMessage,
+                                  style: TextStyle(
+                                      color: Colors.grey, fontSize: 15.0))
+                            ]);
+                          } else {
+                            String lastMessage = snapshot
+                                .data.documents[0].data['text']
+                                .toString();
+                            return Text(lastMessage,
+                                style: TextStyle(
+                                    color: Colors.grey, fontSize: 15.0));
+                          }
+                        } else {
+                          return Text("No messages yet");
+                        }
+                      } else {
+                        return Text("No messages yet");
+                      }
+                    },
+                  )),
       onTap: () {
         Navigator.push(context, new MaterialPageRoute(builder: (context) {
-          //print(chatDocument.id);
-          return new ChatScreen(chatDocument: chatDocument);
+          return new ChatScreen(chatDocument: widget.chatDocument);
         }));
       },
     );
+  }
+
+  _buildReportChatAction() {
+    return isChatReported == null
+        ? null
+        : IconSlideAction(
+            caption: isChatReported ? 'Unreport' : 'Report',
+            color: Colors.red,
+            icon: Icons.flag,
+            onTap: () {
+              if (AuthState.currentUser != null) {
+                Firestore.instance.runTransaction((transaction) async {
+                  var documentReference = Firestore.instance
+                      .collection('users')
+                      .document(AuthState.currentUser.documentID);
+
+                  var data;
+
+                  if (isChatReported) {
+                    data = {
+                      'reportedChats':
+                          FieldValue.arrayRemove([widget.chatDocument.id])
+                    };
+                  } else {
+                    data = {
+                      'reportedChats':
+                          FieldValue.arrayUnion([widget.chatDocument.id])
+                    };
+                  }
+
+                  await transaction.update(documentReference, data);
+
+                  Scaffold.of(context).showSnackBar(SnackBar(
+                    content: isChatReported
+                        ? Text("Report removed!")
+                        : Text("Chat reported"),
+                  ));
+
+                  setState(() {
+                    isChatReported = !isChatReported;
+                  });
+                });
+              } else {
+                Navigator.of(context)
+                    .push(new MaterialPageRoute(builder: (context) {
+                  return new LoginPage(redirectBack: true);
+                }));
+              }
+            });
   }
 
   @override
@@ -138,32 +216,7 @@ class ChatItem extends StatelessWidget {
       actionPane: SlidableDrawerActionPane(),
       actionExtentRatio: 0.25,
       child: _buildChatItemListTile(context),
-      secondaryActions: <Widget>[
-        IconSlideAction(
-            caption: 'Report',
-            color: Colors.red,
-            icon: Icons.flag,
-            onTap: () {
-              if (AuthState.currentUser != null) {
-                final reference =
-                    Firestore.instance.collection('reportedChats');
-
-                reference.document().setData({
-                  'userID': AuthState.currentUser.documentID,
-                  'chatID': chatDocument.id
-                });
-
-                Scaffold.of(context).showSnackBar(SnackBar(
-                  content: Text("Chat reported!"),
-                ));
-              } else {
-                Navigator.of(context)
-                    .push(new MaterialPageRoute(builder: (context) {
-                  return new LoginPage(redirectBack: true);
-                }));
-              }
-            }),
-      ],
+      secondaryActions: <Widget>[_buildReportChatAction()],
     );
   }
 }
