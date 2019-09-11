@@ -47,7 +47,7 @@ class MessagesList extends StatelessWidget {
                       isPreviousMessageByTheSameSender = _checkPreviousMessageSameSender(snapshot.data.documents[index+1], snapshot.data.documents[index]);
                     }
                     return new Container(
-                      padding: EdgeInsets.all(0.5),
+                      padding: EdgeInsets.all(2.0),
                       child: new ChatMessageListItem(
                         messageSnapshot: snapshot.data.documents[index], isPreviousMessageByTheSameSender: isPreviousMessageByTheSameSender
                       ),

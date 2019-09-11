@@ -27,7 +27,7 @@ class ChatMessageListItem extends StatefulWidget {
 }
 
 class _ChatMessageListItemState extends State<ChatMessageListItem> {
-  // final AsyncMemoizer _memoizer = AsyncMemoizer();
+
   bool isSenderBlocked;
 
   @override
@@ -348,15 +348,23 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
               children: <Widget>[
                 // _buildSenderName(),
                 _buildTextMessageContent(),
-                widget.messageSnapshot['imageURL'] != null
-                    ? null
-                    : widget.messageSnapshot['repliesCount'] > 0
-                        ? new Text(
-                            repliesCountLabel,
-                            style:
-                                TextStyle(color: Colors.grey, fontSize: 10.0),
-                          )
-                        : null
+                                Container(
+                    margin: widget.isPreviousMessageByTheSameSender &
+                            _isSentMessage(
+                                widget.messageSnapshot['sender']['id'])
+                        ? EdgeInsets.only(
+                            left:
+                                38.0) // 30 + 8 (can turn into a variable, the inset values)
+                        : EdgeInsets.all(0.0),
+                    child: widget.messageSnapshot['imageURL'] != null
+                        ? null
+                        : widget.messageSnapshot['repliesCount'] > 0
+                            ? new Text(
+                                repliesCountLabel,
+                                style: TextStyle(
+                                    color: Colors.grey, fontSize: 10.0),
+                              )
+                            : null)
               ].where((c) => c != null).toList(),
             ))
           ]
