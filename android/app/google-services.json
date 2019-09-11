@@ -1,0 +1,91 @@
+{
+  "project_info": {
+    "project_number": "460574093497",
+    "firebase_url": "https://fractal-light.firebaseio.com",
+    "project_id": "fractal-light",
+    "storage_bucket": "fractal-light.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:460574093497:android:cd673714b5364d40",
+        "android_client_info": {
+          "package_name": "com.arturbegyan.fractal"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "460574093497-t6fnrp51iigda64fpg38ii8d1ddmgqo9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYU2qvk1XA37ymiYnO9JFy1pT7IKKmf_o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "460574093497-t6fnrp51iigda64fpg38ii8d1ddmgqo9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "460574093497-i3pqtvvg5fj9jlgpisk8af42pb65ihbm.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.fractalFlutterInitial"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:460574093497:android:75dc121a2e2ee2f3",
+        "android_client_info": {
+          "package_name": "com.example.fractalflutterinitial"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "460574093497-v43c60qlqsavtkljs3osndl175ebpscr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.fractalflutterinitial",
+            "certificate_hash": "15e4b94a918b18c948de29849853fe2741a39176"
+          }
+        },
+        {
+          "client_id": "460574093497-t6fnrp51iigda64fpg38ii8d1ddmgqo9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYU2qvk1XA37ymiYnO9JFy1pT7IKKmf_o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "460574093497-t6fnrp51iigda64fpg38ii8d1ddmgqo9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "460574093497-i3pqtvvg5fj9jlgpisk8af42pb65ihbm.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.fractalFlutterInitial"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

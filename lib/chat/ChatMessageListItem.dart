@@ -13,10 +13,14 @@ import '../login.dart';
 import 'package:logging/logging.dart';
 import 'package:async/async.dart';
 
+// TODO: refactor to make more DRY
+
 class ChatMessageListItem extends StatefulWidget {
   final DocumentSnapshot messageSnapshot;
+  final bool isPreviousMessageByTheSameSender;
 
-  ChatMessageListItem({this.messageSnapshot});
+  ChatMessageListItem(
+      {this.messageSnapshot, this.isPreviousMessageByTheSameSender});
 
   @override
   _ChatMessageListItemState createState() => _ChatMessageListItemState();
@@ -117,10 +121,6 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
               ? getSentMessageLayout()
               : getReceivedMessageLayout()),
     );
-  }
-
-  _buildBlockedMessage() {
-    return Text('Sender of message is blocked!');
   }
 
   _createSubchat(
@@ -269,48 +269,34 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
     }
   }
 
-  List<Widget> getReceivedMessageLayout() {
-    String repliesCount = widget.messageSnapshot['repliesCount'].toString();
-    String repliesCountLabel = widget.messageSnapshot['repliesCount'] > 1
-        ? repliesCount + ' replies'
-        : repliesCount + ' reply';
-    return <Widget>[
-      new Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          new Container(
-              margin: const EdgeInsets.only(right: 8.0),
-              child: new CircleAvatar(
-                backgroundImage: new NetworkImage(
-                    'https://graph.facebook.com/${widget.messageSnapshot['sender']['facebookID']}/picture?height=50'),
-                //AssetImage('assets/default-avatar.png'),
-              )),
-        ],
-      ),
-      new Expanded(
-          child: new Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          new Text(widget.messageSnapshot['sender']['name'],
-              style: new TextStyle(
-                  fontSize: 14.0,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold)),
-          new Container(
-              margin: const EdgeInsets.only(top: 5.0),
-              child: isSenderBlocked == null
-                  ? Text("")
-                  : isSenderBlocked
-                      ? Text('Sender is blocked')
-                      : widget.messageSnapshot['imageURL'] != null
-                          ? FadeInImage(
-                              image: NetworkImage(
-                                  widget.messageSnapshot['imageURL']),
-                              placeholder:
-                                  AssetImage('assets/placeholder-image.png'),
-                              width: 200.0,
-                            )
-                          : new Linkify(
+  _buildTextMessageContent() {
+    return new Container(
+        constraints:
+            BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
+        margin: widget.isPreviousMessageByTheSameSender &
+                _isSentMessage(widget.messageSnapshot['sender']['id'])
+            ? EdgeInsets.only(left: 38.0) // 30 + 8 (can turn into a variable, the inset values)
+            : EdgeInsets.all(0.0),
+        child: isSenderBlocked == null
+            ? Text("")
+            : isSenderBlocked
+                ? Text('Sender is blocked')
+                : widget.messageSnapshot['imageURL'] != null
+                    // TODO: add the cached image in here
+                    ? new ClipRRect(
+                        borderRadius: new BorderRadius.circular(8.0),
+                        child: FadeInImage(
+                          image:
+                              NetworkImage(widget.messageSnapshot['imageURL']),
+                          placeholder:
+                              AssetImage('assets/placeholder-image.png'),
+                        ))
+                    : Card(
+                        margin: EdgeInsets.all(0.0),
+                        color: Color.fromRGBO(0, 132, 255, 0.7),
+                        child: Container(
+                            margin: const EdgeInsets.all(8.0),
+                            child: new Linkify(
                               onOpen: (link) async {
                                 if (await canLaunch(link.url)) {
                                   await launch(link.url);
@@ -320,19 +306,80 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
                               },
                               text: widget.messageSnapshot['text'],
                               style: TextStyle(
-                                  fontSize: 16.0, color: Colors.black),
-                            )),
-          widget.messageSnapshot['imageURL'] != null
-              ? null
-              : widget.messageSnapshot['repliesCount'] > 0
-                  ? new Text(
-                      repliesCountLabel,
-                      style: TextStyle(color: Colors.grey, fontSize: 10.0),
-                    )
-                  : null
-        ].where((c) => c != null).toList(),
-      ))
-    ];
+                                  fontSize: 15.0, color: Colors.white),
+                            ))));
+  }
+
+  _buildSenderProfilePhoto() {
+    return new Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        new Container(
+            // TODO: play with the size
+            width: 30.0,
+            height: 30.0,
+            margin: const EdgeInsets.only(right: 8.0),
+            child: new CircleAvatar(
+              backgroundImage: new NetworkImage(
+                  'https://graph.facebook.com/${widget.messageSnapshot['sender']['facebookID']}/picture?height=30'),
+              //AssetImage('assets/default-avatar.png'),
+            )),
+      ],
+    );
+  }
+
+  _buildSenderName() {
+    return new Text(widget.messageSnapshot['sender']['name'],
+        style: new TextStyle(
+            fontSize: 14.0, color: Colors.black, fontWeight: FontWeight.bold));
+  }
+
+  List<Widget> getReceivedMessageLayout() {
+    String repliesCount = widget.messageSnapshot['repliesCount'].toString();
+    String repliesCountLabel = widget.messageSnapshot['repliesCount'] > 1
+        ? repliesCount + ' replies'
+        : repliesCount + ' reply';
+    return widget.isPreviousMessageByTheSameSender
+        ? <Widget>[
+            // _buildSenderProfilePhoto(),
+            new Expanded(
+                child: new Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                // _buildSenderName(),
+                _buildTextMessageContent(),
+                widget.messageSnapshot['imageURL'] != null
+                    ? null
+                    : widget.messageSnapshot['repliesCount'] > 0
+                        ? new Text(
+                            repliesCountLabel,
+                            style:
+                                TextStyle(color: Colors.grey, fontSize: 10.0),
+                          )
+                        : null
+              ].where((c) => c != null).toList(),
+            ))
+          ]
+        : <Widget>[
+            _buildSenderProfilePhoto(),
+            new Expanded(
+                child: new Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                _buildSenderName(),
+                _buildTextMessageContent(),
+                widget.messageSnapshot['imageURL'] != null
+                    ? null
+                    : widget.messageSnapshot['repliesCount'] > 0
+                        ? new Text(
+                            repliesCountLabel,
+                            style:
+                                TextStyle(color: Colors.grey, fontSize: 10.0),
+                          )
+                        : null
+              ].where((c) => c != null).toList(),
+            ))
+          ];
   }
 
   List<Widget> getSentMessageLayout() {
@@ -345,37 +392,12 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
         child: new Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: <Widget>[
-            new Text(widget.messageSnapshot['sender']['name'],
-                style: new TextStyle(
-                    fontSize: 14.0,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold)),
-            new Container(
-                margin: const EdgeInsets.only(top: 5.0),
-                child: isSenderBlocked == null
-                    ? Text("")
-                    : isSenderBlocked
-                        ? Text('Sender is blocked')
-                        : widget.messageSnapshot['imageURL'] != null
-                            ? FadeInImage(
-                                image: NetworkImage(
-                                    widget.messageSnapshot['imageURL']),
-                                placeholder:
-                                    AssetImage('assets/placeholder-image.png'),
-                                width: 200.0,
-                              )
-                            : new Linkify(
-                                onOpen: (link) async {
-                                  if (await canLaunch(link.url)) {
-                                    await launch(link.url);
-                                  } else {
-                                    throw 'Could not launch $link';
-                                  }
-                                },
-                                text: widget.messageSnapshot['text'],
-                                style: TextStyle(
-                                    fontSize: 16.0, color: Colors.black),
-                              )),
+            // new Text(widget.messageSnapshot['sender']['name'],
+            //     style: new TextStyle(
+            //         fontSize: 14.0,
+            //         color: Colors.black,
+            //         fontWeight: FontWeight.bold)),
+            _buildTextMessageContent(),
             widget.messageSnapshot['imageURL'] != null
                 ? null
                 : widget.messageSnapshot['repliesCount'] > 0
@@ -387,18 +409,18 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
           ].where((c) => c != null).toList(),
         ),
       ),
-      new Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: <Widget>[
-          new Container(
-              margin: const EdgeInsets.only(left: 8.0),
-              child: new CircleAvatar(
-                backgroundImage: new NetworkImage(
-                    'https://graph.facebook.com/${widget.messageSnapshot['sender']['facebookID']}/picture?height=80'),
-                //AssetImage('assets/default-avatar.png'),
-              )),
-        ],
-      ),
+      // new Column(
+      //   crossAxisAlignment: CrossAxisAlignment.end,
+      //   children: <Widget>[
+      //     new Container(
+      //         margin: const EdgeInsets.only(left: 8.0),
+      //         child: new CircleAvatar(
+      //           backgroundImage: new NetworkImage(
+      //               'https://graph.facebook.com/${widget.messageSnapshot['sender']['facebookID']}/picture?height=80'),
+      //           //AssetImage('assets/default-avatar.png'),
+      //         )),
+      //   ],
+      // ),
     ];
   }
 }

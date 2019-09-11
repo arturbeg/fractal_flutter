@@ -8,6 +8,13 @@ class MessagesList extends StatelessWidget {
 
   MessagesList({this.chatDocument});
 
+  _checkPreviousMessageSameSender(DocumentSnapshot nextMessage, DocumentSnapshot currentMessage) {
+    // TODO: check for edge cases
+    String nextMessageSenderId = nextMessage.data['sender']['id'];
+    String currentMessageSenderId = currentMessage['sender']['id'];
+    return nextMessageSenderId==currentMessageSenderId;
+  }
+
   // TODO: use a placeholder for the messages to display instead of loading?
   @override
   Widget build(BuildContext context) {
@@ -31,14 +38,18 @@ class MessagesList extends StatelessWidget {
                 return new Text('Error: ${snapshot.error}');
               if (snapshot.data != null) {
                 return new ListView.builder(
-                  // sort: (a, b) => b.key.compareTo(a.key),
                   reverse: true,
                   itemCount: snapshot.data.documents.length,
                   itemBuilder: (BuildContext context, int index) {
+                    // TODO: check if the previous sender is the same
+                    var isPreviousMessageByTheSameSender = false; 
+                    if(index<snapshot.data.documents.length-1) {
+                      isPreviousMessageByTheSameSender = _checkPreviousMessageSameSender(snapshot.data.documents[index+1], snapshot.data.documents[index]);
+                    }
                     return new Container(
-                      padding: EdgeInsets.all(8.0),
+                      padding: EdgeInsets.all(0.5),
                       child: new ChatMessageListItem(
-                        messageSnapshot: snapshot.data.documents[index],
+                        messageSnapshot: snapshot.data.documents[index], isPreviousMessageByTheSameSender: isPreviousMessageByTheSameSender
                       ),
                     );
                   },

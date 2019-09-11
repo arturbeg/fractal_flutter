@@ -4,7 +4,7 @@ class TermsOfService extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      appBar: AppBar(title: Text("Fractal App EULA")),
+      appBar: AppBar(title: Text("Fractal EULA")),
       body: SingleChildScrollView(
         child: new Container(
             child: Column(

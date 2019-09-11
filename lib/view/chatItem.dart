@@ -45,23 +45,29 @@ class _ChatItemState extends State<ChatItem> {
   @override
   void initState() {
     super.initState();
-    final chatId = widget.chatDocument.id;
-    Firestore.instance
-        .collection('users')
-        .document(AuthState.currentUser.documentID)
-        .get()
-        .then((userDocument) {
-      if (userDocument.data.containsKey('reportedChats')) {
-        final List reportedChats = userDocument.data['reportedChats'];
-        setState(() {
-          isChatReported = reportedChats.contains(chatId);
-        });
-      } else {
-        setState(() {
-          isChatReported = false;
-        });
-      }
-    });
+    if (AuthState.currentUser != null) {
+      final chatId = widget.chatDocument.id;
+      Firestore.instance
+          .collection('users')
+          .document(AuthState.currentUser.documentID)
+          .get()
+          .then((userDocument) {
+        if (userDocument.data.containsKey('reportedChats')) {
+          final List reportedChats = userDocument.data['reportedChats'];
+          setState(() {
+            isChatReported = reportedChats.contains(chatId);
+          });
+        } else {
+          setState(() {
+            isChatReported = false;
+          });
+        }
+      });
+    } else {
+      setState(() {
+        isChatReported = false;
+      });
+    }
   }
 
   String shortenNumber(int value) {

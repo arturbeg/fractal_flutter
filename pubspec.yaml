@@ -1,4 +1,4 @@
-name: fractal_from_scratch
+name: fractal
 description: A new Flutter project.
 
 # The following defines the version and build number for your application.
@@ -36,6 +36,7 @@ dependencies:
   shared_preferences: ^0.5.2
   flutter_slidable: ^0.5.3
   logging: ^0.11.3+2
+  bubble: ^1.1.9+1
 
   # loadmore: 
 

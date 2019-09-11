@@ -1,4 +1,4 @@
-# fractal_from_scratch
+# fractal
 
 A new Flutter project.
 
