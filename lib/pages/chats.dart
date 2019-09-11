@@ -18,7 +18,10 @@ class chats extends StatefulWidget {
   }
 }
 
-class ChatState extends State<chats> {
+class ChatState extends State<chats> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   _buildSavedChats() {
     return StreamBuilder<QuerySnapshot>(
       stream: Firestore.instance

@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_auth_buttons/flutter_auth_buttons.dart';
 import './terms_of_service.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class LoginPage extends StatefulWidget {
   bool redirectBack = false;
@@ -198,18 +199,21 @@ class _LoginPageState extends State<LoginPage> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Container(
-            height: 200.0,
-            width: 200.0,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-              image: DecorationImage(
-                fit: BoxFit.fill,
-                image: NetworkImage(
-                    'https://graph.facebook.com/${AuthState.currentUser['facebookID']}/picture?height=200'),
-                //TODO: have a default photo option in the app's assets
-                //AssetImage('assets/default-avatar.png')
+            height: 200, // media query this
+            width: 200,
+            child: CachedNetworkImage(
+              imageUrl: 'https://graph.facebook.com/${AuthState.currentUser['facebookID']}/picture?height=200',
+              imageBuilder: (context, imageProvider) => Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: DecorationImage(
+                      image: imageProvider,
+                      fit: BoxFit.cover,),
+                ),
               ),
+              // TODO: placeholder can be like a placeholder avatar used for images within chats
+              // placeholder: (context, url) => CircularProgressIndicator(),
+              // errorWidget: (context, url, error) => Icon(Icons.error),
             ),
           ),
           SizedBox(height: 28.0),

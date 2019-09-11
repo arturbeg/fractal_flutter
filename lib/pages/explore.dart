@@ -20,40 +20,40 @@ class ExploreState extends State<explore> {
 }
 
 class ExploreChatsList extends StatelessWidget {
+  final exploreChatsStream = Firestore.instance
+      .collection('chats')
+      .where('isSubchat', isEqualTo: false)
+      .orderBy('reddit.rank')
+      .limit(50)
+      .snapshots();
 
-  final exploreChatsStream = Firestore.instance.collection('chats')
-  .where('isSubchat', isEqualTo: false)
-  .orderBy('reddit.rank')
-  .limit(25) // later will have pagination
-  .snapshots();
-  // TODO: change the StreamBuilder implementation (circular progress instead of "Loading...")
   @override
   Widget build(BuildContext context) {
-          return Scaffold(
-        appBar: AppBar(
-          elevation: 0.0,
-          title: Text("r/worldnews"),
-        ),
-        body: new StreamBuilder<QuerySnapshot>(
-      stream: exploreChatsStream,
-      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-        if (snapshot.hasError)
-          return new Text('Error: ${snapshot.error}');
-        switch (snapshot.connectionState) {
-          case ConnectionState.waiting: return new Text(''); // Not displaying Loading...
-          default:
-            return new ListView(
-              children: snapshot.data.documents.map((DocumentSnapshot document) {
-                var chatDocument = ChatModel();
-                chatDocument.setChatModelFromDocumentSnapshot(document);
-                return new 
-                Material(
-                  child: ChatItem(chatDocument: chatDocument)
-                );
-              }).toList(),
-            );
-        }
-      },
-    ),
-      );
-}}
+    return Scaffold(
+      appBar: AppBar(
+        elevation: 0.0,
+        title: Text("r/worldnews"),
+      ),
+      body: new StreamBuilder<QuerySnapshot>(
+        stream: exploreChatsStream,
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
+          switch (snapshot.connectionState) {
+            case ConnectionState.waiting:
+              return new Text('');
+            default:
+              return new ListView(
+                children:
+                    snapshot.data.documents.map((DocumentSnapshot document) {
+                  var chatDocument = ChatModel();
+                  chatDocument.setChatModelFromDocumentSnapshot(document);
+                  return new Material(
+                      child: ChatItem(chatDocument: chatDocument));
+                }).toList(),
+              );
+          }
+        },
+      ),
+    );
+  }
+}

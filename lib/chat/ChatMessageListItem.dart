@@ -12,6 +12,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import '../login.dart';
 import 'package:logging/logging.dart';
 import 'package:async/async.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 // TODO: refactor to make more DRY
 
@@ -27,7 +28,6 @@ class ChatMessageListItem extends StatefulWidget {
 }
 
 class _ChatMessageListItemState extends State<ChatMessageListItem> {
-
   bool isSenderBlocked;
 
   @override
@@ -117,7 +117,7 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
         }
       },
       child: Row(
-          children: _isSentMessage(widget.messageSnapshot['sender']['id'])
+          children: !_isSentMessage(widget.messageSnapshot['sender']['id'])
               ? getSentMessageLayout()
               : getReceivedMessageLayout()),
     );
@@ -275,7 +275,9 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
             BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
         margin: widget.isPreviousMessageByTheSameSender &
                 _isSentMessage(widget.messageSnapshot['sender']['id'])
-            ? EdgeInsets.only(left: 38.0) // 30 + 8 (can turn into a variable, the inset values)
+            ? EdgeInsets.only(
+                left:
+                    38.0) // 30 + 8 (can turn into a variable, the inset values)
             : EdgeInsets.all(0.0),
         child: isSenderBlocked == null
             ? Text("")
@@ -283,14 +285,17 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
                 ? Text('Sender is blocked')
                 : widget.messageSnapshot['imageURL'] != null
                     // TODO: add the cached image in here
-                    ? new ClipRRect(
-                        borderRadius: new BorderRadius.circular(8.0),
-                        child: FadeInImage(
-                          image:
-                              NetworkImage(widget.messageSnapshot['imageURL']),
-                          placeholder:
-                              AssetImage('assets/placeholder-image.png'),
-                        ))
+                    // TODO: add placeholder avatar image (find one on google)
+                    ? CachedNetworkImage(
+                        imageUrl: widget.messageSnapshot['imageURL'],
+                        imageBuilder: (context, imageProvider) => new ClipRRect(
+                            borderRadius: new BorderRadius.circular(8.0),
+                            child: FadeInImage(
+                              image: imageProvider,
+                              placeholder:
+                                  AssetImage('assets/placeholder-image.png'),
+                            )),
+                      )
                     : Card(
                         margin: EdgeInsets.all(0.0),
                         color: Color.fromRGBO(0, 132, 255, 0.7),
@@ -315,15 +320,18 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         new Container(
-            // TODO: play with the size
-            width: 30.0,
-            height: 30.0,
-            margin: const EdgeInsets.only(right: 8.0),
-            child: new CircleAvatar(
-              backgroundImage: new NetworkImage(
-                  'https://graph.facebook.com/${widget.messageSnapshot['sender']['facebookID']}/picture?height=30'),
-              //AssetImage('assets/default-avatar.png'),
-            )),
+          // TODO: play with the size
+          width: 30.0,
+          height: 30.0,
+          margin: const EdgeInsets.only(right: 8.0),
+          child: CachedNetworkImage(
+            imageUrl: 'https://graph.facebook.com/${widget.messageSnapshot['sender']['facebookID']}/picture?height=30',
+            imageBuilder: (context, imageProvider) => 
+            new CircleAvatar(
+              backgroundImage: imageProvider,
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -348,7 +356,7 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
               children: <Widget>[
                 // _buildSenderName(),
                 _buildTextMessageContent(),
-                                Container(
+                Container(
                     margin: widget.isPreviousMessageByTheSameSender &
                             _isSentMessage(
                                 widget.messageSnapshot['sender']['id'])

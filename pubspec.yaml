@@ -37,6 +37,7 @@ dependencies:
   flutter_slidable: ^0.5.3
   logging: ^0.11.3+2
   bubble: ^1.1.9+1
+  cached_network_image: ^1.1.1
 
   # loadmore: 
 
