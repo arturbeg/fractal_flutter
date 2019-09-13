@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../view/chatItem.dart';
 import '../auth_state.dart';
 import '../login.dart';
+import 'package:async/async.dart';
 
 class chats extends StatefulWidget {
   ChatState state;
@@ -36,7 +37,9 @@ class ChatState extends State<chats> with AutomaticKeepAliveClientMixin {
           case ConnectionState.waiting:
             return new Text(''); // Not displaying Loading...
           default:
-            return new ListView.builder(
+            return Scrollbar(
+              child: new ListView.builder(
+              physics: new ClampingScrollPhysics(),
               itemCount: snapshot.data.documents.length,
               itemBuilder: (BuildContext context, int index) {
                 var chatDocument = ChatModel();
@@ -46,6 +49,7 @@ class ChatState extends State<chats> with AutomaticKeepAliveClientMixin {
                   chatDocument: chatDocument,
                 );
               },
+            )
             );
         }
       },
@@ -71,6 +75,7 @@ class ChatState extends State<chats> with AutomaticKeepAliveClientMixin {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     if (AuthState.currentUser == null) {
       return _buildSuggestionToLogIn();
     } else {

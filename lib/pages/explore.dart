@@ -27,6 +27,9 @@ class ExploreChatsList extends StatelessWidget {
       .limit(50)
       .snapshots();
 
+  // TODO: turn into a stateful widget
+  // Change ChatItem design
+  // Do not use a SteamBuilder, it updates too often
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,11 +41,13 @@ class ExploreChatsList extends StatelessWidget {
         stream: exploreChatsStream,
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
-          switch (snapshot.connectionState) {
+          switch (snapshot.connectionState) { 
             case ConnectionState.waiting:
               return new Text('');
             default:
-              return new ListView(
+              return new Scrollbar(
+                child: new ListView(
+                physics: new ClampingScrollPhysics(),
                 children:
                     snapshot.data.documents.map((DocumentSnapshot document) {
                   var chatDocument = ChatModel();
@@ -50,7 +55,9 @@ class ExploreChatsList extends StatelessWidget {
                   return new Material(
                       child: ChatItem(chatDocument: chatDocument));
                 }).toList(),
-              );
+              ),
+              )
+              ;
           }
         },
       ),

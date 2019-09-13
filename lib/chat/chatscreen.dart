@@ -21,7 +21,11 @@ class ChatScreen extends StatefulWidget {
   }
 }
 
-class ChatScreenState extends State<ChatScreen> {
+class ChatScreenState extends State<ChatScreen>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   final TextEditingController _textEditingController =
       new TextEditingController();
   bool _isComposingMessage = false;
@@ -179,6 +183,7 @@ class ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return new Scaffold(
         appBar: new AppBar(
           title: new GestureDetector(
@@ -285,6 +290,7 @@ class ChatScreenState extends State<ChatScreen> {
                               _isUploadingPhoto = true;
                             });
                             File imageFile = await ImagePicker.pickImage(
+                                maxWidth: 500.0, // 640.0 is default vga
                                 source: ImageSource.gallery);
                             if (imageFile == null) {
                               setState(() {
@@ -321,6 +327,8 @@ class ChatScreenState extends State<ChatScreen> {
               ),
               new Flexible(
                 child: new TextField(
+                  keyboardType: TextInputType.multiline,
+                  maxLines: null,
                   focusNode: focusNode,
                   controller: _textEditingController,
                   onChanged: (String messageText) {
