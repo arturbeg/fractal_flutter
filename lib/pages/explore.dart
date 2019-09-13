@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:fractal/pages/chats.dart';
 // import '../view/ChatScreen.dart';
 import '../model/models.dart';
 import '../chat/chatscreen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../view/chatItem.dart';
+import '../explored_chats_state.dart';
 
 class explore extends StatefulWidget {
   @override
@@ -13,13 +15,6 @@ class explore extends StatefulWidget {
 }
 
 class ExploreState extends State<explore> {
-  @override
-  Widget build(BuildContext context) {
-    return new ExploreChatsList();
-  }
-}
-
-class ExploreChatsList extends StatelessWidget {
   final exploreChatsStream = Firestore.instance
       .collection('chats')
       .where('isSubchat', isEqualTo: false)
@@ -27,9 +22,6 @@ class ExploreChatsList extends StatelessWidget {
       .limit(50)
       .snapshots();
 
-  // TODO: turn into a stateful widget
-  // Change ChatItem design
-  // Do not use a SteamBuilder, it updates too often
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,26 +30,28 @@ class ExploreChatsList extends StatelessWidget {
         title: Text("r/worldnews"),
       ),
       body: new StreamBuilder<QuerySnapshot>(
+        initialData: ExploreChatsCache.snapshot,
         stream: exploreChatsStream,
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        builder: (BuildContext context, snapshot) {
           if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
-          switch (snapshot.connectionState) { 
+          switch (snapshot.connectionState) {
             case ConnectionState.waiting:
               return new Text('');
             default:
+              ExploreChatsCache.instance.setExploreChats(snapshot.data);
+              print(ExploreChatsCache.snapshot.documents[0].documentID);
               return new Scrollbar(
                 child: new ListView(
-                physics: new ClampingScrollPhysics(),
-                children:
-                    snapshot.data.documents.map((DocumentSnapshot document) {
-                  var chatDocument = ChatModel();
-                  chatDocument.setChatModelFromDocumentSnapshot(document);
-                  return new Material(
-                      child: ChatItem(chatDocument: chatDocument));
-                }).toList(),
-              ),
-              )
-              ;
+                  physics: new ClampingScrollPhysics(),
+                  children:
+                      snapshot.data.documents.map((DocumentSnapshot document) {
+                    var chatDocument = ChatModel();
+                    chatDocument.setChatModelFromDocumentSnapshot(document);
+                    return new Material(
+                        child: ChatItem(chatDocument: chatDocument));
+                  }).toList(),
+                ),
+              );
           }
         },
       ),

@@ -54,19 +54,25 @@ class _ChatItemState extends State<ChatItem> {
           .then((userDocument) {
         if (userDocument.data.containsKey('reportedChats')) {
           final List reportedChats = userDocument.data['reportedChats'];
-          setState(() {
-            isChatReported = reportedChats.contains(chatId);
-          });
+          if (mounted) {
+            setState(() {
+              isChatReported = reportedChats.contains(chatId);
+            });
+          }
         } else {
-          setState(() {
-            isChatReported = false;
-          });
+          if (mounted) {
+            setState(() {
+              isChatReported = false;
+            });
+          }
         }
       });
     } else {
-      setState(() {
-        isChatReported = false;
-      });
+      if (mounted) {
+        setState(() {
+          isChatReported = false;
+        });
+      }
     }
   }
 
@@ -203,9 +209,11 @@ class _ChatItemState extends State<ChatItem> {
                         : Text("Chat reported"),
                   ));
 
-                  setState(() {
-                    isChatReported = !isChatReported;
-                  });
+                  if (mounted) {
+                    setState(() {
+                      isChatReported = !isChatReported;
+                    });
+                  }
                 });
               } else {
                 Navigator.of(context)
