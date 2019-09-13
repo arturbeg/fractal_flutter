@@ -35,7 +35,7 @@ class ChatState extends State<chats> with AutomaticKeepAliveClientMixin {
         if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
         switch (snapshot.connectionState) {
           case ConnectionState.waiting:
-            return new Text(''); // Not displaying Loading...
+            return Center(child: CircularProgressIndicator(),);
           default:
             return Scrollbar(
               child: new ListView.builder(

@@ -25,7 +25,7 @@ class ChatMessageListItem extends StatefulWidget {
 
   @override
   _ChatMessageListItemState createState() => _ChatMessageListItemState();
-} 
+}
 
 class _ChatMessageListItemState extends State<ChatMessageListItem> {
   bool isSenderBlocked;
@@ -64,6 +64,9 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
   }
 
   _openSubchat(DocumentSnapshot messageSnapshot, context) async {
+    Scaffold.of(context)
+        .showSnackBar(SnackBar(content: Text("Opening the subchat")));
+
     final QuerySnapshot result = await Firestore.instance
         .collection('chats')
         .where('parentMessageId', isEqualTo: messageSnapshot.documentID)
@@ -86,20 +89,23 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
   _buildMessage(context) {
     return new GestureDetector(
       onDoubleTap: () {
-        // If message subchat exists --> open it
-        // If message subchat does not exist --> create subchat and navigate to it
-        // TODO: refactor DRY
-        if (AuthState.currentUser != null) {
-          if (widget.messageSnapshot['imageURL'] == null) {
-            _getMessageHasSubchat(widget.messageSnapshot).then((hasSubchat) {
-              if (hasSubchat) {
-                _openSubchat(widget.messageSnapshot, context);
-              } else {
+        // TODO: DRY
+        if (widget.messageSnapshot['imageURL'] == null) {
+          _getMessageHasSubchat(widget.messageSnapshot).then((hasSubchat) {
+            if (hasSubchat) {
+              _openSubchat(widget.messageSnapshot, context);
+            } else {
+              if (AuthState.currentUser != null) {
                 final subchatName = widget.messageSnapshot['text'];
                 _createSubchat(subchatName, widget.messageSnapshot, context);
+              } else {
+                Navigator.of(context)
+                    .push(new MaterialPageRoute(builder: (context) {
+                  return new LoginPage(redirectBack: true);
+                }));
               }
-            });
-          }
+            }
+          });
         }
       },
       onLongPress: () {
@@ -109,8 +115,15 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
               if (hasSubchat) {
                 _openSubchat(widget.messageSnapshot, context);
               } else {
-                final subchatName = widget.messageSnapshot['text'];
-                _createSubchat(subchatName, widget.messageSnapshot, context);
+                if (AuthState.currentUser != null) {
+                  final subchatName = widget.messageSnapshot['text'];
+                  _createSubchat(subchatName, widget.messageSnapshot, context);
+                } else {
+                  Navigator.of(context)
+                      .push(new MaterialPageRoute(builder: (context) {
+                    return new LoginPage(redirectBack: true);
+                  }));
+                }
               }
             });
           }
@@ -125,6 +138,11 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
 
   _createSubchat(
       String subchatName, DocumentSnapshot messageSnapshot, context) async {
+    Scaffold.of(context).showSnackBar(SnackBar(
+      content: Text("Creating a subchat..."),
+      duration: Duration(milliseconds: 500),
+    ));
+
     final DocumentReference chatDocumentReference =
         await Firestore.instance.collection("chats").add({
       "about": "",
@@ -202,11 +220,14 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
 
                   await transaction.update(documentReference, data);
 
-                  Scaffold.of(context).showSnackBar(SnackBar(
-                    content: isSenderBlocked
-                        ? Text("User unblocked!")
-                        : Text("User blocked!"),
-                  ));
+                  Scaffold.of(context).showSnackBar(
+                    SnackBar(
+                      content: isSenderBlocked
+                          ? Text("User unblocked!")
+                          : Text("User blocked!"),
+                      duration: Duration(milliseconds: 500),
+                    ),
+                  );
 
                   setState(() {
                     isSenderBlocked = !isSenderBlocked;
@@ -292,17 +313,26 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
                             borderRadius: new BorderRadius.circular(8.0),
                             child: FadeInImage(
                               image: imageProvider,
-                              placeholder:
-                                  AssetImage('assets/placeholder-image.png'),
+                              placeholder: AssetImage('assets/placeholder-image.png'),
                             )),
-                      )
+                            placeholder: (context, url) {
+                              return ClipRRect(
+                            borderRadius: new BorderRadius.circular(8.0),
+                            child: FadeInImage(
+                              image: AssetImage('assets/placeholder-image.png'),
+                              placeholder: AssetImage('assets/placeholder-image.png'),
+                            ));
+                            },
+                      ) 
                     : Card(
                         margin: EdgeInsets.all(0.0),
                         // make colour dependent on the sender
                         // TODO: remove the ! in here and up here
                         // TODO: fully sort out the colouring scheme
-                        color: !_isSentMessage(widget.messageSnapshot['sender']['id']) ?
-                        Color.fromRGBO(0, 132, 255, 0.7) : Color.fromRGBO(230, 230, 230, 1.0),
+                        color: !_isSentMessage(
+                                widget.messageSnapshot['sender']['id'])
+                            ? Color.fromRGBO(0, 132, 255, 0.7)
+                            : Color.fromRGBO(230, 230, 230, 1.0),
                         child: Container(
                             margin: const EdgeInsets.all(8.0),
                             child: new Linkify(
@@ -315,13 +345,11 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
                               },
                               text: widget.messageSnapshot['text'],
                               style: TextStyle(
-                                  fontSize: 15.0, color: 
-                                  
-                                  !_isSentMessage(widget.messageSnapshot['sender']['id']) ?
-                                  Colors.white :
-                                  Colors.black
-                                  
-                                  ),
+                                  fontSize: 15.0,
+                                  color: !_isSentMessage(widget
+                                          .messageSnapshot['sender']['id'])
+                                      ? Colors.white
+                                      : Colors.black),
                             ))));
   }
 
@@ -335,9 +363,9 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
           height: 30.0,
           margin: const EdgeInsets.only(right: 8.0),
           child: CachedNetworkImage(
-            imageUrl: 'https://graph.facebook.com/${widget.messageSnapshot['sender']['facebookID']}/picture?height=30',
-            imageBuilder: (context, imageProvider) => 
-            new CircleAvatar(
+            imageUrl:
+                'https://graph.facebook.com/${widget.messageSnapshot['sender']['facebookID']}/picture?height=30',
+            imageBuilder: (context, imageProvider) => new CircleAvatar(
               backgroundImage: imageProvider,
             ),
           ),
