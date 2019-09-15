@@ -46,7 +46,6 @@ class ExploreState extends State<explore> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
