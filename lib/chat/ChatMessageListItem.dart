@@ -87,48 +87,55 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
   }
 
   _buildMessage(context) {
-    return new GestureDetector(
-      onDoubleTap: () {
-        // TODO: DRY
-        if (widget.messageSnapshot['imageURL'] == null) {
-          _getMessageHasSubchat(widget.messageSnapshot).then((hasSubchat) {
-            if (hasSubchat) {
-              _openSubchat(widget.messageSnapshot, context);
-            } else {
-              if (AuthState.currentUser != null) {
-                final subchatName = widget.messageSnapshot['text'];
-                _createSubchat(subchatName, widget.messageSnapshot, context);
-              } else {
-                Navigator.of(context)
-                    .push(new MaterialPageRoute(builder: (context) {
-                  return new LoginPage(redirectBack: true);
-                }));
-              }
-            }
-          });
-        }
-      },
-      onLongPress: () {
-        if (AuthState.currentUser != null) {
-          if (widget.messageSnapshot['imageURL'] == null) {
-            _getMessageHasSubchat(widget.messageSnapshot).then((hasSubchat) {
-              if (hasSubchat) {
-                _openSubchat(widget.messageSnapshot, context);
-              } else {
-                if (AuthState.currentUser != null) {
-                  final subchatName = widget.messageSnapshot['text'];
-                  _createSubchat(subchatName, widget.messageSnapshot, context);
-                } else {
-                  Navigator.of(context)
-                      .push(new MaterialPageRoute(builder: (context) {
-                    return new LoginPage(redirectBack: true);
-                  }));
-                }
-              }
-            });
-          }
-        }
-      },
+    // onDoubleTap: () {
+    //   // TODO: DRY
+    //   if (widget.messageSnapshot['imageURL'] == null) {
+    //     _getMessageHasSubchat(widget.messageSnapshot).then((hasSubchat) {
+    //       if (hasSubchat) {
+    //         _openSubchat(widget.messageSnapshot, context);
+    //       } else {
+    //         if (AuthState.currentUser != null) {
+    //           final subchatName = widget.messageSnapshot['text'];
+    //           _createSubchat(subchatName, widget.messageSnapshot, context);
+    //         } else {
+    //           Navigator.of(context)
+    //               .push(new MaterialPageRoute(builder: (context) {
+    //             return new LoginPage(redirectBack: true);
+    //           }));
+    //         }
+    //       }
+    //     });
+    //   }
+    // },
+    // onLongPress: () {
+    //   if (AuthState.currentUser != null) {
+    //     if (widget.messageSnapshot['imageURL'] == null) {
+    //       _getMessageHasSubchat(widget.messageSnapshot).then((hasSubchat) {
+    //         if (hasSubchat) {
+    //           _openSubchat(widget.messageSnapshot, context);
+    //         } else {
+    //           if (AuthState.currentUser != null) {
+    //             final subchatName = widget.messageSnapshot['text'];
+    //             _createSubchat(subchatName, widget.messageSnapshot, context);
+    //           } else {
+    //             Navigator.of(context)
+    //                 .push(new MaterialPageRoute(builder: (context) {
+    //               return new LoginPage(redirectBack: true);
+    //             }));
+    //           }
+    //         }
+    //       });
+    //     }
+    //   }
+    // },
+
+    return PopupMenuButton(
+      itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+        const PopupMenuItem(
+          value: 'yo',
+          child: Text('Working a lot harder'),
+        ),
+      ],
       child: Row(
           children: !_isSentMessage(widget.messageSnapshot['sender']['id'])
               ? getSentMessageLayout()

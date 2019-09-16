@@ -52,7 +52,7 @@ class MessagesList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    CachedMessagesFirebase messsagesProvider =
+    CachedMessagesFirebase messagesProvider =
         Provider.of<CachedMessagesFirebase>(context);
     return new GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -62,18 +62,12 @@ class MessagesList extends StatelessWidget {
       child: new Container(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: StreamBuilder<QuerySnapshot>(
-            initialData: messsagesProvider.getCachedMessages(chatDocument.id),
-            stream: messsagesProvider.fetchMessages(chatDocument.id),
+            initialData: messagesProvider.getCachedMessages(chatDocument.id),
+            stream: messagesProvider.fetchMessages(chatDocument.id),
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasError)
                 return new Text('Error: ${snapshot.error}');
-
-              // update cache
-              if (snapshot.data != null) {
-                messsagesProvider.updateCachedMessages(
-                    chatDocument.id, snapshot.data);
-              }
 
               return _buildMessagesList(snapshot);
             },

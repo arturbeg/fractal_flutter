@@ -83,6 +83,7 @@ class ChatScreenState extends State<ChatScreen>
 
     ChatScreenManager chatScreenProvider =
         Provider.of<ChatScreenManager>(context);
+    
     // TODO: review later
     // TODO: make sure works fast
     // TODO: only have widget if it is a subchat

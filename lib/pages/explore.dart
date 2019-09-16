@@ -1,28 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:fractal/pages/chats.dart';
 import 'package:provider/provider.dart';
-// import '../view/ChatScreen.dart';
 import '../model/models.dart';
-import '../chat/chatscreen.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../view/chatItem.dart';
-import '../explored_chats_state.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import '../chats_provider.dart';
-import 'dart:async';
 
-class explore extends StatefulWidget {
-  @override
-  State<StatefulWidget> createState() {
-    return new ExploreState();
-  }
-}
-
-class ExploreState extends State<explore> {
-  // TODO: load more functionality in here with a future builder
-
-  // TODO: put this login into a provider
-
+class explore extends StatelessWidget {
   _buildListView(documents) {
     if (documents != null) {
       return new Scrollbar(
@@ -71,7 +53,6 @@ class ExploreState extends State<explore> {
                 case ConnectionState.done:
                   if (snapshot.hasError)
                     return Text('Error: ${snapshot.error}');
-                  chatsProvider.updatedCachedExploredChats(snapshot.data);
                   return _buildListView(snapshot.data.documents);
               }
               return null;
@@ -80,3 +61,7 @@ class ExploreState extends State<explore> {
     );
   }
 }
+
+// TODO: load more functionality in here with a future builder
+
+// TODO: put this login into a provider

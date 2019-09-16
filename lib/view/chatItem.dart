@@ -19,28 +19,10 @@ class ChatScreenArguments {
   ChatScreenArguments(this.chatDocument);
 }
 
-
-
-
-class ChatItem extends StatefulWidget {
+class ChatItem extends StatelessWidget {
   final ChatModel chatDocument;
 
   ChatItem({this.chatDocument});
-
-  @override
-  _ChatItemState createState() => _ChatItemState();
-}
-
-class _ChatItemState extends State<ChatItem> {
-  final bool isSubchat = false;
-
-  GlobalKey key = new GlobalKey();
-
-  DocumentSnapshot parentMessageSnapshot;
-
-  final SnackBar snackBar = SnackBar(
-    content: Text("Message was successfully linked!"),
-  );
 
   String _getShortenedName(
       String name, BuildContext context, bool isChatReported) {
@@ -75,11 +57,11 @@ class _ChatItemState extends State<ChatItem> {
   }
 
   _buildChatItemMiniInfo() {
-    if (widget.chatDocument.isSubchat) {
+    if (chatDocument.isSubchat) {
       return Column(
         children: <Widget>[
           Text(
-            timeago.format(widget.chatDocument.lastMessageTimestamp,
+            timeago.format(chatDocument.lastMessageTimestamp,
                 locale: 'en_short'),
             style: TextStyle(color: Colors.black45),
           ),
@@ -106,11 +88,11 @@ class _ChatItemState extends State<ChatItem> {
       return Column(
         children: <Widget>[
           Text(
-            timeago.format(widget.chatDocument.lastMessageTimestamp,
+            timeago.format(chatDocument.lastMessageTimestamp,
                 locale: 'en_short'),
             style: TextStyle(color: Colors.black45),
           ),
-          Text(shortenNumber(widget.chatDocument.reddit.reddit_score)),
+          Text(shortenNumber(chatDocument.reddit.reddit_score)),
         ],
       );
     }
@@ -119,7 +101,7 @@ class _ChatItemState extends State<ChatItem> {
   Future<String> _subchatParentMessageRepliesCount() {
     return Firestore.instance
         .collection('messages')
-        .document(widget.chatDocument.parentMessageId)
+        .document(chatDocument.parentMessageId)
         .get()
         .then((parentMessage) {
       return parentMessage.data['repliesCount'].toString();
@@ -129,11 +111,11 @@ class _ChatItemState extends State<ChatItem> {
   _buildChatItemListTile(ReportedChatIds reportedChatsProvider,
       LastMessages lastMessagesProvider, BuildContext context) {
     final isChatReported =
-        reportedChatsProvider.isChatReported(widget.chatDocument.id);
+        reportedChatsProvider.isChatReported(chatDocument.id);
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).pushNamed('/chat', arguments: ChatScreenArguments(widget.chatDocument)
-        );
+        Navigator.of(context).pushNamed('/chat',
+            arguments: ChatScreenArguments(chatDocument));
       },
       // TODO: Turn into a stateless widget?
       child: Column(
@@ -158,7 +140,7 @@ class _ChatItemState extends State<ChatItem> {
                                         MediaQuery.of(context).size.width *
                                             0.7),
                                 child: new Text(
-                                  _getShortenedName(widget.chatDocument.name,
+                                  _getShortenedName(chatDocument.name,
                                       context, isChatReported),
                                   style: new TextStyle(
                                       fontWeight: FontWeight.w500,
@@ -189,16 +171,8 @@ class _ChatItemState extends State<ChatItem> {
                                         child: StreamBuilder<QuerySnapshot>(
                                           initialData: lastMessagesProvider
                                               .getCachedLastMessage(
-                                                  widget.chatDocument.id),
-                                          stream: Firestore.instance
-                                              .collection('messages')
-                                              .where('chatId',
-                                                  isEqualTo:
-                                                      widget.chatDocument.id)
-                                              .orderBy("timestamp",
-                                                  descending: true)
-                                              .limit(1)
-                                              .snapshots(),
+                                                  chatDocument.id),
+                                          stream: lastMessagesProvider.fetchLastMessageFirebaseStream(chatDocument.id),
                                           builder: (BuildContext context,
                                               AsyncSnapshot<QuerySnapshot>
                                                   snapshot) {
@@ -206,11 +180,6 @@ class _ChatItemState extends State<ChatItem> {
                                               return new Text(
                                                   'Error: ${snapshot.error}');
                                             }
-                                            // update the cached lastMessages
-                                            lastMessagesProvider
-                                                .updateCachedLastMessages(
-                                                    widget.chatDocument.id,
-                                                    snapshot.data);
 
                                             if (snapshot.data != null) {
                                               if (snapshot
@@ -281,9 +250,9 @@ class _ChatItemState extends State<ChatItem> {
     );
   }
 
-  _buildReportChatAction(ReportedChatIds reportedChatsProvider) {
+  _buildReportChatAction(BuildContext context, ReportedChatIds reportedChatsProvider) {
     final isChatReported =
-        reportedChatsProvider.isChatReported(widget.chatDocument.id);
+        reportedChatsProvider.isChatReported(chatDocument.id);
     return isChatReported == null
         ? null
         : IconSlideAction(
@@ -292,7 +261,7 @@ class _ChatItemState extends State<ChatItem> {
             icon: Icons.flag,
             onTap: () {
               reportedChatsProvider.updateReportedChatFirebase(
-                  widget.chatDocument.id, isChatReported, context);
+                  chatDocument.id, isChatReported, context);
             });
   }
 
@@ -300,13 +269,13 @@ class _ChatItemState extends State<ChatItem> {
   Widget build(BuildContext context) {
     final reportedChatsProvider = Provider.of<ReportedChatIds>(context);
     final lastMessagesProvider = Provider.of<LastMessages>(context);
-    // reportedChatsProvider.isChatReportedFetch(widget.chatDocument.id);
+    // reportedChatsProvider.isChatReportedFetch(chatDocument.id);
     return new Slidable(
       actionPane: SlidableDrawerActionPane(),
       actionExtentRatio: 0.25,
       child: _buildChatItemListTile(
           reportedChatsProvider, lastMessagesProvider, context),
-      secondaryActions: <Widget>[_buildReportChatAction(reportedChatsProvider)],
+      secondaryActions: <Widget>[_buildReportChatAction(context, reportedChatsProvider)],
     );
   }
 }
