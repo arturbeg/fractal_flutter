@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 // import '../view/ChatScreen.dart';
 import '../model/models.dart';
 import '../chat/chatscreen.dart';
@@ -7,6 +8,7 @@ import '../view/chatItem.dart';
 import '../auth_state.dart';
 import '../login.dart';
 import 'package:async/async.dart';
+import '../chats_provider.dart';
 
 class chats extends StatefulWidget {
   ChatState state;
@@ -23,8 +25,9 @@ class ChatState extends State<chats> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
-  _buildSavedChats() {
+  _buildSavedChats(CachedChats cachedChatsProvider) {
     return StreamBuilder<QuerySnapshot>(
+      initialData: cachedChatsProvider.getCachedSavedChats(),
       stream: Firestore.instance
           .collection('joinedChats')
           .where('user.id', isEqualTo: AuthState.currentUser.documentID)
@@ -35,13 +38,18 @@ class ChatState extends State<chats> with AutomaticKeepAliveClientMixin {
         if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
         switch (snapshot.connectionState) {
           case ConnectionState.waiting:
-            return Center(child: CircularProgressIndicator(),);
+            // TODO: later introduce a custom progress indicator
+            return Center(
+              child: CircularProgressIndicator(),
+            );
           default:
             return Scrollbar(
-              child: new ListView.builder(
+                child: new ListView.builder(
               physics: new ClampingScrollPhysics(),
               itemCount: snapshot.data.documents.length,
               itemBuilder: (BuildContext context, int index) {
+                // updating cache
+                cachedChatsProvider.updatedCachedSavedChats(snapshot.data);
                 var chatDocument = ChatModel();
                 chatDocument.setChatModelFromJoinedChatDocumentSnapshot(
                     snapshot.data.documents[index]);
@@ -49,8 +57,7 @@ class ChatState extends State<chats> with AutomaticKeepAliveClientMixin {
                   chatDocument: chatDocument,
                 );
               },
-            )
-            );
+            ));
         }
       },
     );
@@ -76,10 +83,11 @@ class ChatState extends State<chats> with AutomaticKeepAliveClientMixin {
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    CachedChats cachedChatsProvider = Provider.of<CachedChats>(context);
     if (AuthState.currentUser == null) {
       return _buildSuggestionToLogIn();
     } else {
-      return _buildSavedChats();
+      return _buildSavedChats(cachedChatsProvider);
     }
   }
 }

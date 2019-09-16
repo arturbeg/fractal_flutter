@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import './last_message.dart';
 import './reported_chats_provider.dart';
+import './chats_provider.dart';
 
 Widget getErrorWidget(BuildContext context, FlutterErrorDetails error) {
   return Center(
@@ -73,22 +74,23 @@ class _LoginPageState extends State<LoginPage> {
     };
 
     return MultiProvider(
-      providers: [
-        ChangeNotifierProvider<LastMessages>(builder: (_) => LastMessages()),
-        ChangeNotifierProvider<ReportedChatIds>(builder: (_) => ReportedChatIds()),
-      ],
+        providers: [
+          ChangeNotifierProvider<LastMessages>(builder: (_) => LastMessages()),
+          ChangeNotifierProvider<ReportedChatIds>(
+              builder: (_) => ReportedChatIds()),
+          ChangeNotifierProvider<CachedChats>(builder: (_) => CachedChats()),
+        ],
         child: MaterialApp(
-            debugShowCheckedModeBanner: false,
-            home: Scaffold(
-                appBar: AppBar(
-                  elevation: 0.0,
-                  title: _appBarTitle,
-                ),
-                body: showCircularProgress
-                    ? Center(child: CircularProgressIndicator())
-                    : _displayHomePage()),
-          )
-    );
+          debugShowCheckedModeBanner: false,
+          home: Scaffold(
+              appBar: AppBar(
+                elevation: 0.0,
+                title: _appBarTitle,
+              ),
+              body: showCircularProgress
+                  ? Center(child: CircularProgressIndicator())
+                  : _displayHomePage()),
+        ));
   }
 
   _displayHomePage() {

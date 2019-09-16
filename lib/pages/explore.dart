@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fractal/pages/chats.dart';
+import 'package:provider/provider.dart';
 // import '../view/ChatScreen.dart';
 import '../model/models.dart';
 import '../chat/chatscreen.dart';
@@ -7,6 +8,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../view/chatItem.dart';
 import '../explored_chats_state.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import '../chats_provider.dart';
+import 'dart:async';
 
 class explore extends StatefulWidget {
   @override
@@ -16,15 +19,9 @@ class explore extends StatefulWidget {
 }
 
 class ExploreState extends State<explore> {
-
-  final exploreChatsStream = Firestore.instance
-      .collection('chats')
-      .where('isSubchat', isEqualTo: false)
-      .orderBy('reddit.rank')
-      .limit(30)
-      .snapshots();
-  
   // TODO: load more functionality in here with a future builder
+
+  // TODO: put this login into a provider
 
   _buildListView(documents) {
     if (documents != null) {
@@ -42,45 +39,43 @@ class ExploreState extends State<explore> {
       ));
     } else {
       // TODO: placeholder rectange like on Youtube or instagram
-      return Text("");
+      return Text("11");
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final chatsProvider = Provider.of<CachedChats>(context);
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0.0,
         title: Text("r/worldnews"),
       ),
-      body: new StreamBuilder<QuerySnapshot>(
-        initialData: ExploreChatsCache.snapshot,
-        stream: exploreChatsStream,
-        builder: (BuildContext context, snapshot) {
-          if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
-          switch (snapshot.connectionState) {
-            // TODO: use default
-            case ConnectionState.waiting:
-              print("Connection state is waiting");
-              return Center(child: CircularProgressIndicator(),);
-              // return _buildListView(ExploreChatsCache.snapshot.documents);
-            case ConnectionState.none:
-              print("Connection state is none");
-              return Text('');
-              // return _buildListView(ExploreChatsCache.snapshot.documents);
-            case ConnectionState.active:
-              print("Active");
-              print("Connection state is done");
-              ExploreChatsCache.instance.setExploreChats(snapshot.data);
-              print(ExploreChatsCache.snapshot.documents[0].documentID);
-              return _buildListView(snapshot.data.documents);
-            case ConnectionState.done:
-              print("Connection state is done");
-              ExploreChatsCache.instance.setExploreChats(snapshot.data);
-              print(ExploreChatsCache.snapshot.documents[0].documentID);
-              return _buildListView(snapshot.data.documents);
-          }
-        },
+      body: RefreshIndicator(
+        onRefresh: chatsProvider.handleRefresh,
+        color: Colors.white,
+        backgroundColor: Colors.black,
+        child: FutureBuilder(
+            initialData: chatsProvider.cachedExploredChats,
+            future: chatsProvider.exploredChatsFuture,
+            builder: (context, snapshot) {
+              switch (snapshot.connectionState) {
+                case ConnectionState.none:
+                  return Text('none');
+                case ConnectionState.active:
+                case ConnectionState.waiting:
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                case ConnectionState.done:
+                  if (snapshot.hasError)
+                    return Text('Error: ${snapshot.error}');
+                  chatsProvider.updatedCachedExploredChats(snapshot.data);
+                  return _buildListView(snapshot.data.documents);
+              }
+              return null;
+            }),
       ),
     );
   }

@@ -24,7 +24,6 @@ class ChatItem extends StatefulWidget {
 }
 
 class _ChatItemState extends State<ChatItem> {
-
   final bool isSubchat = false;
 
   GlobalKey key = new GlobalKey();
@@ -35,16 +34,16 @@ class _ChatItemState extends State<ChatItem> {
     content: Text("Message was successfully linked!"),
   );
 
-  String _getShortenedName(String name, BuildContext context) {
+  String _getShortenedName(
+      String name, BuildContext context, bool isChatReported) {
     name = name.replaceAll("\n", " ");
-    // if (isChatReported == null) {
-    //   return "";
-    // } else if (isChatReported) {
-    //   return "This chat is reported";
-    // } else {
-    //   return name;
-    // } 
-    return "This is the chat name";
+    if (isChatReported == null) {
+      return "";
+    } else if (isChatReported) {
+      return "This chat is reported";
+    } else {
+      return name;
+    }
   }
 
   _lastMessageShortener(text) {
@@ -119,8 +118,10 @@ class _ChatItemState extends State<ChatItem> {
     });
   }
 
-  _buildChatItemListTile(ReportedChatIds reportedChatsProvider, LastMessages lastMessagesProvider,  BuildContext context) {
-    final isChatReported = reportedChatsProvider.isChatReported(widget.chatDocument.id);
+  _buildChatItemListTile(ReportedChatIds reportedChatsProvider,
+      LastMessages lastMessagesProvider, BuildContext context) {
+    final isChatReported =
+        reportedChatsProvider.isChatReported(widget.chatDocument.id);
     return GestureDetector(
       onTap: () {
         Navigator.push(context, new MaterialPageRoute(builder: (context) {
@@ -150,7 +151,8 @@ class _ChatItemState extends State<ChatItem> {
                                         MediaQuery.of(context).size.width *
                                             0.7),
                                 child: new Text(
-                                  _getShortenedName(widget.chatDocument.name, context),
+                                  _getShortenedName(widget.chatDocument.name,
+                                      context, isChatReported),
                                   style: new TextStyle(
                                       fontWeight: FontWeight.w500,
                                       fontSize: 16.0),
@@ -178,7 +180,9 @@ class _ChatItemState extends State<ChatItem> {
                                         padding:
                                             const EdgeInsets.only(top: 5.0),
                                         child: StreamBuilder<QuerySnapshot>(
-                                          initialData: lastMessagesProvider.getCachedLastMessage(widget.chatDocument.id),
+                                          initialData: lastMessagesProvider
+                                              .getCachedLastMessage(
+                                                  widget.chatDocument.id),
                                           stream: Firestore.instance
                                               .collection('messages')
                                               .where('chatId',
@@ -196,7 +200,10 @@ class _ChatItemState extends State<ChatItem> {
                                                   'Error: ${snapshot.error}');
                                             }
                                             // update the cached lastMessages
-                                            lastMessagesProvider.updateCachedLastMessages(widget.chatDocument.id, snapshot.data);
+                                            lastMessagesProvider
+                                                .updateCachedLastMessages(
+                                                    widget.chatDocument.id,
+                                                    snapshot.data);
 
                                             if (snapshot.data != null) {
                                               if (snapshot
@@ -268,7 +275,8 @@ class _ChatItemState extends State<ChatItem> {
   }
 
   _buildReportChatAction(ReportedChatIds reportedChatsProvider) {
-    final isChatReported = reportedChatsProvider.isChatReported(widget.chatDocument.id);
+    final isChatReported =
+        reportedChatsProvider.isChatReported(widget.chatDocument.id);
     return isChatReported == null
         ? null
         : IconSlideAction(
@@ -276,10 +284,11 @@ class _ChatItemState extends State<ChatItem> {
             color: Colors.red,
             icon: Icons.flag,
             onTap: () {
-              reportedChatsProvider.updateReportedChatFirebase(widget.chatDocument.id, isChatReported, context);
+              reportedChatsProvider.updateReportedChatFirebase(
+                  widget.chatDocument.id, isChatReported, context);
             });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final reportedChatsProvider = Provider.of<ReportedChatIds>(context);
@@ -288,7 +297,8 @@ class _ChatItemState extends State<ChatItem> {
     return new Slidable(
       actionPane: SlidableDrawerActionPane(),
       actionExtentRatio: 0.25,
-      child: _buildChatItemListTile(reportedChatsProvider, lastMessagesProvider, context),
+      child: _buildChatItemListTile(
+          reportedChatsProvider, lastMessagesProvider, context),
       secondaryActions: <Widget>[_buildReportChatAction(reportedChatsProvider)],
     );
   }
