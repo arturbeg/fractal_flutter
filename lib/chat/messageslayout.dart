@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:fractal/messages_provider.dart';
+import 'package:provider/provider.dart';
 import './chatmessagelistitem.dart';
 import '../model/models.dart';
 
@@ -19,6 +21,7 @@ class MessagesList extends StatelessWidget {
   // TODO: use a placeholder for the messages to display instead of loading?
   @override
   Widget build(BuildContext context) {
+    CachedMessagesFirebase messsagesProvider = Provider.of<CachedMessagesFirebase>(context);
     return new GestureDetector(
       behavior: HitTestBehavior.opaque,
       onPanDown: (_) {
@@ -27,17 +30,15 @@ class MessagesList extends StatelessWidget {
       child: new Container(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: StreamBuilder<QuerySnapshot>(
-            stream: Firestore.instance
-                .collection('messages')
-                .where('chatId', isEqualTo: chatDocument.id)
-                .orderBy('timestamp', descending: true)
-                .limit(200) // can adjust later
-                .snapshots(),
+            initialData: messsagesProvider.getCachedMessages(chatDocument.id),
+            stream: messsagesProvider.fetchMessages(chatDocument.id),
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasError)
                 return new Text('Error: ${snapshot.error}');
               if (snapshot.data != null) {
+                // update cache
+                messsagesProvider.updateCachedMessages(chatDocument.id, snapshot.data);
                 return new Scrollbar(
                   child: new ListView.builder(
                     physics: new ClampingScrollPhysics(),

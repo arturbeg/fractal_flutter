@@ -1,7 +1,5 @@
-import 'dart:collection';
-import 'package:cloud_firestore/cloud_firestore.dart' as prefix0;
-import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 
 // TODO: later name CachedChatsAndFirebase
@@ -39,8 +37,9 @@ class CachedChats with ChangeNotifier {
     QuerySnapshot explored = await Firestore.instance
       .collection('chats')
       .where('isSubchat', isEqualTo: false)
-      .orderBy('reddit.rank')
-      .limit(30).getDocuments();
+      .orderBy('reddit.rank').
+      limit(100)
+      .getDocuments();
       //TODO:  can map to chat models in here
     return explored;
   }

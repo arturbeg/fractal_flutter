@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import './last_message.dart';
 import './reported_chats_provider.dart';
 import './chats_provider.dart';
+import './messages_provider.dart';
 
 Widget getErrorWidget(BuildContext context, FlutterErrorDetails error) {
   return Center(
@@ -79,6 +80,8 @@ class _LoginPageState extends State<LoginPage> {
           ChangeNotifierProvider<ReportedChatIds>(
               builder: (_) => ReportedChatIds()),
           ChangeNotifierProvider<CachedChats>(builder: (_) => CachedChats()),
+          ChangeNotifierProvider<CachedMessagesFirebase>(
+              builder: (_) => CachedMessagesFirebase()),
         ],
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
