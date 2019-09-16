@@ -18,10 +18,42 @@ class MessagesList extends StatelessWidget {
     return nextMessageSenderId == currentMessageSenderId;
   }
 
-  // TODO: use a placeholder for the messages to display instead of loading?
+  _buildMessagesList(snapshot) {
+    if (snapshot.data != null) {
+      return new Scrollbar(
+        child: new ListView.builder(
+          physics: new ClampingScrollPhysics(),
+          reverse: true,
+          itemCount: snapshot.data.documents.length,
+          itemBuilder: (BuildContext context, int index) {
+            var isPreviousMessageByTheSameSender = false;
+            if (index < snapshot.data.documents.length - 1) {
+              isPreviousMessageByTheSameSender =
+                  _checkPreviousMessageSameSender(
+                      snapshot.data.documents[index + 1],
+                      snapshot.data.documents[index]);
+            }
+            return new Container(
+              padding: EdgeInsets.all(2.0),
+              child: new ChatMessageListItem(
+                  messageSnapshot: snapshot.data.documents[index],
+                  isPreviousMessageByTheSameSender:
+                      isPreviousMessageByTheSameSender),
+            );
+          },
+        ),
+      );
+    } else {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    CachedMessagesFirebase messsagesProvider = Provider.of<CachedMessagesFirebase>(context);
+    CachedMessagesFirebase messsagesProvider =
+        Provider.of<CachedMessagesFirebase>(context);
     return new GestureDetector(
       behavior: HitTestBehavior.opaque,
       onPanDown: (_) {
@@ -36,38 +68,14 @@ class MessagesList extends StatelessWidget {
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasError)
                 return new Text('Error: ${snapshot.error}');
+
+              // update cache
               if (snapshot.data != null) {
-                // update cache
-                messsagesProvider.updateCachedMessages(chatDocument.id, snapshot.data);
-                return new Scrollbar(
-                  child: new ListView.builder(
-                    physics: new ClampingScrollPhysics(),
-                    reverse: true,
-                    itemCount: snapshot.data.documents.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      // TODO: check if the previous sender is the same
-                      var isPreviousMessageByTheSameSender = false;
-                      if (index < snapshot.data.documents.length - 1) {
-                        isPreviousMessageByTheSameSender =
-                            _checkPreviousMessageSameSender(
-                                snapshot.data.documents[index + 1],
-                                snapshot.data.documents[index]);
-                      }
-                      return new Container(
-                        padding: EdgeInsets.all(2.0),
-                        child: new ChatMessageListItem(
-                            messageSnapshot: snapshot.data.documents[index],
-                            isPreviousMessageByTheSameSender:
-                                isPreviousMessageByTheSameSender),
-                      );
-                    },
-                  ),
-                );
-              } else {
-                return Center(
-                  child: CircularProgressIndicator(),
-                );
+                messsagesProvider.updateCachedMessages(
+                    chatDocument.id, snapshot.data);
               }
+
+              return _buildMessagesList(snapshot);
             },
           )),
     );

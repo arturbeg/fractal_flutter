@@ -14,6 +14,14 @@ import '../auth_state.dart';
 import '../login.dart';
 import 'package:provider/provider.dart';
 
+class ChatScreenArguments {
+  final chatDocument;
+  ChatScreenArguments(this.chatDocument);
+}
+
+
+
+
 class ChatItem extends StatefulWidget {
   final ChatModel chatDocument;
 
@@ -124,9 +132,8 @@ class _ChatItemState extends State<ChatItem> {
         reportedChatsProvider.isChatReported(widget.chatDocument.id);
     return GestureDetector(
       onTap: () {
-        Navigator.push(context, new MaterialPageRoute(builder: (context) {
-          return new ChatScreen(chatDocument: widget.chatDocument);
-        }));
+        Navigator.of(context).pushNamed('/chat', arguments: ChatScreenArguments(widget.chatDocument)
+        );
       },
       // TODO: Turn into a stateless widget?
       child: Column(

@@ -8,7 +8,6 @@ import 'dart:core';
 import './auth_state.dart';
 import './login.dart';
 
-
 class WhatsAppHome extends StatefulWidget {
   final DocumentSnapshot userDocument;
 
@@ -57,18 +56,6 @@ class _WhatsAppHomeState extends State<WhatsAppHome>
       body: new Center(
         child: _widgetOptions.elementAt(_selectedIndex),
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   elevation: 0.6,
-      //   onPressed: () => startAction(),
-      //   child: new Icon(Icons.message, color: Colors.white),
-      //   backgroundColor: Theme.of(context).accentColor,
-      // ),
     );
-  }
-
-  void startAction() {
-    Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
-      return new NewChat();
-    }));
   }
 }

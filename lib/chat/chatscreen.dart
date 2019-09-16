@@ -1,10 +1,14 @@
 import 'dart:async';
+import 'dart:core';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:fractal/chat_screen_provider.dart';
+import 'package:fractal/view/chatItem.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import './messageslayout.dart';
 import './chatDetail.dart';
 import '../auth_state.dart';
@@ -12,9 +16,6 @@ import '../model/models.dart';
 import '../login.dart';
 
 class ChatScreen extends StatefulWidget {
-  ChatModel chatDocument; // not a final because can change through the edit
-  ChatScreen({this.chatDocument});
-
   @override
   ChatScreenState createState() {
     return new ChatScreenState();
@@ -31,8 +32,6 @@ class ChatScreenState extends State<ChatScreen>
   bool _isComposingMessage = false;
   File imageFile;
   String imageURL;
-  bool chatJoined = false;
-  bool isChatOwner = false;
   final reference = Firestore.instance.collection('messages');
 
   final ScrollController listScrollController = new ScrollController();
@@ -40,89 +39,13 @@ class ChatScreenState extends State<ChatScreen>
 
   bool _isUploadingPhoto = false;
 
-  void initState() {
-    super.initState();
-
-    if (AuthState.currentUser != null) {
-      _isChatJoined().then((isJoined) {
-        setState(() {
-          chatJoined = isJoined;
-        });
-      });
-
-      _checkUserIsChatOwner();
-    }
-  }
-
-  Future<bool> _isChatJoined() async {
-    final QuerySnapshot result = await Firestore.instance
-        .collection('joinedChats')
-        .where('chatId', isEqualTo: widget.chatDocument.id)
-        .where('user.id', isEqualTo: AuthState.currentUser.documentID)
-        .getDocuments();
-
-    final List<DocumentSnapshot> documents = result.documents;
-
-    return documents.length > 0 ? true : false;
-  }
-
-  // check later if all is correct
-  Future<bool> _leaveChat() async {
-    final QuerySnapshot result = await Firestore.instance
-        .collection('joinedChats')
-        .where('chatId', isEqualTo: widget.chatDocument.id)
-        .where('user.id', isEqualTo: AuthState.currentUser.documentID)
-        .getDocuments()
-        .then((snapshot) {
-      for (DocumentSnapshot ds in snapshot.documents) {
-        ds.reference.delete();
-      }
-    });
-
-    // TODO: check if the deletion works, catch error, etc...
-    setState(() {
-      chatJoined = false;
-    });
-  }
-
-  _joinChat() {
-    final reference = Firestore.instance.collection('joinedChats');
-    reference.document().setData({
-      "about": widget.chatDocument.about,
-      "avatarURL": widget.chatDocument.avatarURL,
-      "chatId": widget.chatDocument.id,
-      "chatTimestamp": widget.chatDocument.getFirebaseTimestamp(),
-      "name": widget.chatDocument.name,
-      "owner": widget.chatDocument.owner.getChatOwnerModelMap(),
-      "timestamp": FieldValue.serverTimestamp(),
-      "user": {
-        "id": AuthState.currentUser.documentID,
-        "facebookID": AuthState.currentUser.data['facebookID'],
-        "name": AuthState.currentUser.data['name']
-      },
-      "parentMessageId": widget.chatDocument.parentMessageId,
-      "parentChat": widget.chatDocument.parentChat.getParentChatModelMap(),
-      "isSubchat": widget.chatDocument.isSubchat,
-      "lastMessageTimestamp": FieldValue.serverTimestamp(),
-      "url": widget.chatDocument.url,
-      "reddit": {
-        "id": widget.chatDocument.reddit.id,
-        "author": widget.chatDocument.reddit.author,
-        "num_comments": widget.chatDocument.reddit.num_comments,
-        "over_18": widget.chatDocument.reddit.over_18,
-        "subreddit": widget.chatDocument.reddit.subreddit,
-        "upvote_ratio": widget.chatDocument.reddit.upvote_ratio,
-        "shortlink": widget.chatDocument.reddit.shortlink,
-        'reddit_score': widget.chatDocument.reddit.reddit_score,
-        'rank': widget.chatDocument.reddit.rank
-      },
-    });
-
-    // TODO: check if the action was actually successful, otherwise there would be duplicated
-    setState(() {
-      chatJoined = true;
-    });
-  }
+  // _onWillPop(BuildContext context, ChatModel chatDocument) {
+  //   if (chatDocument.isSubchat) {
+  //     Navigator.of(context).popUntil(ModalRoute.withName('/chat'));
+  //   } else {
+  //     Navigator.of(context).pop();
+  //   }
+  // }
 
   Future uploadFile() async {
     String fileName = DateTime.now().millisecondsSinceEpoch.toString();
@@ -134,83 +57,73 @@ class ChatScreenState extends State<ChatScreen>
     }, onError: (err) {});
   }
 
-  _buildAppBarActions() {
-    if (isChatOwner) {
-      return <Widget>[
-        IconButton(
-          icon: chatJoined ? Icon(Icons.bookmark) : Icon(Icons.bookmark_border),
-          onPressed: () {
-            //print("Button pressed");
-            if (!chatJoined) {
-              _joinChat();
-            } else {
-              _leaveChat();
-            }
-          },
-        ),
-        // IconButton(
-        //   icon: Icon(Icons.edit),
-        //   onPressed: () {
-        //     //print("Wanna edit?");
-        //     _handleEdit();
-        //   },
-        // ),
-      ];
-    } else {
-      return <Widget>[
-        IconButton(
-          icon: chatJoined ? Icon(Icons.bookmark) : Icon(Icons.bookmark_border),
-          onPressed: () {
-            if (!chatJoined) {
-              _joinChat();
-            } else {
-              _leaveChat();
-            }
-          },
-        )
-      ];
-    }
-  }
-
-  _checkUserIsChatOwner() {
-    if (widget.chatDocument.owner.getChatOwnerModelMap()['id'] ==
-        AuthState.currentUser.documentID) {
-      setState(() {
-        isChatOwner = true;
-      });
-    }
+  _buildAppBarActions(
+      ChatModel chatDocument, ChatScreenManager chatScreenProvider) {
+    bool chatJoined = chatScreenProvider.getIsChatJoined(chatDocument.id);
+    return <Widget>[
+      IconButton(
+        icon: chatJoined ? Icon(Icons.bookmark) : Icon(Icons.bookmark_border),
+        onPressed: () {
+          if (!chatJoined) {
+            chatScreenProvider.joinChat(chatDocument, context);
+          } else {
+            chatScreenProvider.leaveChat(chatDocument.id, context);
+          }
+        },
+      )
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return new Scaffold(
+    final ChatScreenArguments args = ModalRoute.of(context).settings.arguments;
+
+    ChatModel chatDocument = args.chatDocument;
+
+    ChatScreenManager chatScreenProvider =
+        Provider.of<ChatScreenManager>(context);
+    // TODO: review later
+    // TODO: make sure works fast
+    // TODO: only have widget if it is a subchat
+    // return WillPopScope(
+    //   onWillPop: () async {
+    //     if (chatDocument.isSubchat) {
+    //       Navigator.of(context).popUntil(ModalRoute.withName('/chat'));
+    //     } else {
+    //       Navigator.of(context).pop();
+    //     }
+    //     return false;
+    //   },
+    return Scaffold(
         appBar: new AppBar(
           title: new GestureDetector(
             onTap: () {
               Navigator.push(context, new MaterialPageRoute(builder: (context) {
                 return new DetailPage(
-                  chatDocument: widget.chatDocument,
+                  chatDocument: chatDocument,
                 );
               }));
             },
-            child: new Text(widget.chatDocument.name),
+            child: new Text(chatDocument.name),
           ),
-          actions: AuthState.currentUser != null ? _buildAppBarActions() : null,
+          actions: AuthState.currentUser != null
+              ? _buildAppBarActions(chatDocument, chatScreenProvider)
+              : null,
         ),
         body: new Container(
           child: new Column(
             children: <Widget>[
               new Flexible(
                   child: MessagesList(
-                chatDocument: widget.chatDocument,
+                chatDocument: chatDocument,
               )),
               new Divider(height: 1.0),
               new Container(
                 decoration:
                     new BoxDecoration(color: Theme.of(context).cardColor),
                 child: AuthState.currentUser != null
-                    ? _buildTextComposer()
+                    ? _buildTextComposer(chatDocument)
                     : _buildRequestToLogIn(),
               ),
               new Builder(builder: (BuildContext context) {
@@ -261,7 +174,7 @@ class ChatScreenState extends State<ChatScreen>
     );
   }
 
-  Widget _buildTextComposer() {
+  Widget _buildTextComposer(ChatModel chatDocument) {
     return new IconTheme(
         data: new IconThemeData(
           color: _isComposingMessage
@@ -278,13 +191,11 @@ class ChatScreenState extends State<ChatScreen>
                     ? CircularProgressIndicator()
                     : IconButton(
                         icon: new Icon(
-                          Icons.photo_camera,
+                          Icons.insert_photo,
                           color: Theme.of(context).accentColor,
                           size: 32.0,
                         ),
                         onPressed: () async {
-                          // await _ensureLoggedIn();
-
                           if (!_isUploadingPhoto) {
                             setState(() {
                               _isUploadingPhoto = true;
@@ -313,8 +224,7 @@ class ChatScreenState extends State<ChatScreen>
                             storageTaskSnapshot.ref
                                 .getDownloadURL()
                                 .then((downloadUrl) {
-                              //print(downloadUrl);
-                              _sendMessage(
+                              _sendMessage(chatDocument,
                                   messageText: null,
                                   imageUrl: downloadUrl.toString());
 
@@ -328,6 +238,7 @@ class ChatScreenState extends State<ChatScreen>
               new Flexible(
                 child: new TextField(
                   keyboardType: TextInputType.multiline,
+                  // TODO: set limit to number of lines
                   maxLines: null,
                   focusNode: focusNode,
                   controller: _textEditingController,
@@ -354,17 +265,18 @@ class ChatScreenState extends State<ChatScreen>
   }
 
   Future<Null> _textMessageSubmitted(String text) async {
+    ChatModel chatDocument = ModalRoute.of(context).settings.arguments;
+
     _textEditingController.clear();
     FocusScope.of(context).requestFocus(focusNode);
     setState(() {
       _isComposingMessage = false;
     });
-
-    // await _ensureLoggedIn();
-    _sendMessage(messageText: text, imageUrl: null);
+    _sendMessage(chatDocument, messageText: text, imageUrl: null);
   }
 
-  void _sendMessage({String messageText, String imageUrl}) {
+  void _sendMessage(ChatModel chatDocument,
+      {String messageText, String imageUrl}) {
     if (imageUrl == null && messageText.trim().length == 0) {
       //print("Not sending anything");
     } else {
@@ -374,11 +286,11 @@ class ChatScreenState extends State<ChatScreen>
 
       reference.document().setData({
         'chat': {
-          'id': widget.chatDocument.id,
-          'name': widget.chatDocument.name,
-          'avatarURL': widget.chatDocument.avatarURL
+          'id': chatDocument.id,
+          'name': chatDocument.name,
+          'avatarURL': chatDocument.avatarURL
         },
-        'chatId': widget.chatDocument.id,
+        'chatId': chatDocument.id,
         'imageURL': imageUrl,
         'text': messageText,
         'timestamp': firestoreTimestamp,

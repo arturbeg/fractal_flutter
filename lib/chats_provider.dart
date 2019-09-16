@@ -5,7 +5,6 @@ import 'dart:async';
 // TODO: later name CachedChatsAndFirebase
 class CachedChats with ChangeNotifier {
   
-
   QuerySnapshot _cachedSavedChats;
   QuerySnapshot _cachedExploredChats;
   Future<QuerySnapshot> _exploredChatsFuture = _fetchExploredChats();
@@ -38,7 +37,7 @@ class CachedChats with ChangeNotifier {
       .collection('chats')
       .where('isSubchat', isEqualTo: false)
       .orderBy('reddit.rank').
-      limit(100)
+      limit(70)
       .getDocuments();
       //TODO:  can map to chat models in here
     return explored;

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fractal/chat/chatscreen.dart';
+import 'package:fractal/chat_screen_provider.dart';
 import './WhatsAppHome.dart';
 import './auth_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -82,8 +84,14 @@ class _LoginPageState extends State<LoginPage> {
           ChangeNotifierProvider<CachedChats>(builder: (_) => CachedChats()),
           ChangeNotifierProvider<CachedMessagesFirebase>(
               builder: (_) => CachedMessagesFirebase()),
+          ChangeNotifierProvider<ChatScreenManager>(
+              builder: (_) => ChatScreenManager())
         ],
         child: MaterialApp(
+          // TODO: make sure works, add more
+          routes: {
+            '/chat': (context) => ChatScreen()
+            },
           debugShowCheckedModeBanner: false,
           home: Scaffold(
               appBar: AppBar(

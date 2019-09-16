@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fractal/view/chatItem.dart';
 import './branchingPage.dart';
 import './messageInfoPage.dart';
 import '../auth_state.dart';
@@ -64,8 +65,10 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
   }
 
   _openSubchat(DocumentSnapshot messageSnapshot, context) async {
-    Scaffold.of(context)
-        .showSnackBar(SnackBar(content: Text("Opening the subchat")));
+    Scaffold.of(context).showSnackBar(SnackBar(
+      content: Text("Opening the subchat"),
+      duration: Duration(seconds: 1),
+    ));
 
     final QuerySnapshot result = await Firestore.instance
         .collection('chats')
@@ -79,11 +82,8 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
     var document = ChatModel();
     document.setChatModelFromDocumentSnapshot(chatDocument);
 
-    Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
-      var document = ChatModel();
-      document.setChatModelFromDocumentSnapshot(chatDocument);
-      return new ChatScreen(chatDocument: document);
-    }));
+    Navigator.of(context)
+        .pushNamed('/chat', arguments: ChatScreenArguments(document));
   }
 
   _buildMessage(context) {
@@ -181,11 +181,8 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
       var document = ChatModel();
       document.setChatModelFromDocumentSnapshot(chatDocument);
 
-      Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
-        var document = ChatModel();
-        document.setChatModelFromDocumentSnapshot(chatDocument);
-        return new ChatScreen(chatDocument: document);
-      }));
+      Navigator.of(context)
+          .pushNamed('/chat', arguments: ChatScreenArguments(document));
     });
   }
 
@@ -313,17 +310,20 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
                             borderRadius: new BorderRadius.circular(8.0),
                             child: FadeInImage(
                               image: imageProvider,
-                              placeholder: AssetImage('assets/placeholder-image.png'),
+                              placeholder:
+                                  AssetImage('assets/placeholder-image.png'),
                             )),
-                            placeholder: (context, url) {
-                              return ClipRRect(
-                            borderRadius: new BorderRadius.circular(8.0),
-                            child: FadeInImage(
-                              image: AssetImage('assets/placeholder-image.png'),
-                              placeholder: AssetImage('assets/placeholder-image.png'),
-                            ));
-                            },
-                      ) 
+                        placeholder: (context, url) {
+                          return ClipRRect(
+                              borderRadius: new BorderRadius.circular(8.0),
+                              child: FadeInImage(
+                                image:
+                                    AssetImage('assets/placeholder-image.png'),
+                                placeholder:
+                                    AssetImage('assets/placeholder-image.png'),
+                              ));
+                        },
+                      )
                     : Card(
                         margin: EdgeInsets.all(0.0),
                         // make colour dependent on the sender
