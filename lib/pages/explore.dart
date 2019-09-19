@@ -27,7 +27,7 @@ class explore extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final chatsProvider = Provider.of<CachedChats>(context, listen: false);
+    final chatsProvider = Provider.of<CachedChats>(context);
 
     return Scaffold(
       appBar: AppBar(

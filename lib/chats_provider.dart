@@ -54,8 +54,11 @@ class CachedChats with ChangeNotifier {
     notifyListeners();
   }
 
-  void updatedCachedExploredChats(QuerySnapshot updatedCachedExploredChats) {
+  void updatedCachedExploredChats(QuerySnapshot updatedCachedExploredChats, {bool notify:true}) {
     _cachedExploredChats = updatedCachedExploredChats;
+    if(notify) {
+      notifyListeners();
+    }
   }
 
   // TODO: move the whole firebase logic here
@@ -64,24 +67,21 @@ class CachedChats with ChangeNotifier {
 
   // TODO: memoise this?
   Future<QuerySnapshot> _fetchExploredChats() async {
-    QuerySnapshot explored = await Firestore.instance
+    return await Firestore.instance
         .collection('chats')
         .where('isSubchat', isEqualTo: false)
         .orderBy('reddit.rank')
         .limit(70)
-        .getDocuments()
-        .then((snapshot) {
-     // print("Updating Cached Explored Chats");
-      updatedCachedExploredChats(snapshot);
-    });
-
-    //TODO:  can map to chat models in here
-    return explored;
+        .getDocuments();
   }
 
   Future<Null> handleRefresh() async {
     // update function for the future
     _exploredChatsFuture = _fetchExploredChats();
+    notifyListeners();
+
+    var cachedExploredChats = await _fetchExploredChats();
+    updatedCachedExploredChats(cachedExploredChats, notify: false);
     return null;
   }
 }
