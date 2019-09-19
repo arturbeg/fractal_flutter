@@ -82,8 +82,9 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
     var document = ChatModel();
     document.setChatModelFromDocumentSnapshot(chatDocument);
 
-    Navigator.of(context)
-        .pushNamed('/chat', arguments: ChatScreenArguments(document));
+    Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
+      return new ChatScreen(chatDocument: document);
+    }));
   }
 
   _buildMessage(context) {
@@ -129,18 +130,10 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
     //   }
     // },
 
-    return PopupMenuButton(
-      itemBuilder: (BuildContext context) => <PopupMenuEntry>[
-        const PopupMenuItem(
-          value: 'yo',
-          child: Text('Working a lot harder'),
-        ),
-      ],
-      child: Row(
-          children: !_isSentMessage(widget.messageSnapshot['sender']['id'])
-              ? getSentMessageLayout()
-              : getReceivedMessageLayout()),
-    );
+    return Row(
+        children: _isSentMessage(widget.messageSnapshot['sender']['id'])
+            ? getSentMessageLayout()
+            : getReceivedMessageLayout());
   }
 
   _createSubchat(
@@ -188,8 +181,9 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
       var document = ChatModel();
       document.setChatModelFromDocumentSnapshot(chatDocument);
 
-      Navigator.of(context)
-          .pushNamed('/chat', arguments: ChatScreenArguments(document));
+      Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
+        return new ChatScreen(chatDocument: document);
+      }));
     });
   }
 
@@ -336,7 +330,7 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
                         // make colour dependent on the sender
                         // TODO: remove the ! in here and up here
                         // TODO: fully sort out the colouring scheme
-                        color: !_isSentMessage(
+                        color: _isSentMessage(
                                 widget.messageSnapshot['sender']['id'])
                             ? Color.fromRGBO(0, 132, 255, 0.7)
                             : Color.fromRGBO(230, 230, 230, 1.0),
@@ -353,7 +347,7 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
                               text: widget.messageSnapshot['text'],
                               style: TextStyle(
                                   fontSize: 15.0,
-                                  color: !_isSentMessage(widget
+                                  color: _isSentMessage(widget
                                           .messageSnapshot['sender']['id'])
                                       ? Colors.white
                                       : Colors.black),

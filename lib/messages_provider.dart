@@ -16,12 +16,11 @@ class CachedMessagesFirebase with ChangeNotifier {
       print("Invoke cached messages");
       return _cachedMessages[chatId];
     } else {
-      _fetchMessagesForCache(chatId);
       return null;
     }
   }
 
-  void _fetchMessagesForCache(String chatId) async {
+  void fetchMessagesForCache(String chatId) async {
     QuerySnapshot messages = await Firestore.instance
         .collection('messages')
         .where('chatId', isEqualTo: chatId)

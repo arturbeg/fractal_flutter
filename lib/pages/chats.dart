@@ -24,6 +24,16 @@ class chats extends StatefulWidget {
 class ChatState extends State<chats> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
+  CachedChats cachedChatsProvider;
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+      cachedChatsProvider = Provider.of<CachedChats>(context, listen: false);
+    });
+    cachedChatsProvider.fetchSavedChatsForCache();
+  }
 
   _buildSavedChats(CachedChats cachedChatsProvider) {
     return StreamBuilder<QuerySnapshot>(
@@ -48,8 +58,6 @@ class ChatState extends State<chats> with AutomaticKeepAliveClientMixin {
               physics: new ClampingScrollPhysics(),
               itemCount: snapshot.data.documents.length,
               itemBuilder: (BuildContext context, int index) {
-                // updating cache
-                cachedChatsProvider.updatedCachedSavedChats(snapshot.data);
                 var chatDocument = ChatModel();
                 chatDocument.setChatModelFromJoinedChatDocumentSnapshot(
                     snapshot.data.documents[index]);
@@ -83,7 +91,6 @@ class ChatState extends State<chats> with AutomaticKeepAliveClientMixin {
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    CachedChats cachedChatsProvider = Provider.of<CachedChats>(context);
     if (AuthState.currentUser == null) {
       return _buildSuggestionToLogIn();
     } else {

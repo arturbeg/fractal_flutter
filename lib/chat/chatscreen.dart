@@ -3,7 +3,6 @@ import 'dart:core';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fractal/chat_screen_provider.dart';
-import 'package:fractal/view/chatItem.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
@@ -16,6 +15,10 @@ import '../model/models.dart';
 import '../login.dart';
 
 class ChatScreen extends StatefulWidget {
+  final ChatModel chatDocument;
+
+  ChatScreen({this.chatDocument});
+
   @override
   ChatScreenState createState() {
     return new ChatScreenState();
@@ -27,36 +30,6 @@ class ChatScreenState extends State<ChatScreen>
   @override
   bool get wantKeepAlive => true;
 
-  final TextEditingController _textEditingController =
-      new TextEditingController();
-  bool _isComposingMessage = false;
-  File imageFile;
-  String imageURL;
-  final reference = Firestore.instance.collection('messages');
-
-  final ScrollController listScrollController = new ScrollController();
-  final FocusNode focusNode = new FocusNode();
-
-  bool _isUploadingPhoto = false;
-
-  // _onWillPop(BuildContext context, ChatModel chatDocument) {
-  //   if (chatDocument.isSubchat) {
-  //     Navigator.of(context).popUntil(ModalRoute.withName('/chat'));
-  //   } else {
-  //     Navigator.of(context).pop();
-  //   }
-  // }
-
-  Future uploadFile() async {
-    String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-    StorageReference reference = FirebaseStorage.instance.ref().child(fileName);
-    StorageUploadTask uploadTask = reference.putFile(imageFile);
-    StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
-    storageTaskSnapshot.ref.getDownloadURL().then((downloadUrl) {
-      imageURL = downloadUrl;
-    }, onError: (err) {});
-  }
-
   _buildAppBarActions(
       ChatModel chatDocument, ChatScreenManager chatScreenProvider) {
     bool chatJoined = chatScreenProvider.getIsChatJoined(chatDocument.id);
@@ -65,9 +38,9 @@ class ChatScreenState extends State<ChatScreen>
         icon: chatJoined ? Icon(Icons.bookmark) : Icon(Icons.bookmark_border),
         onPressed: () {
           if (!chatJoined) {
-            chatScreenProvider.joinChat(chatDocument, context);
+            chatScreenProvider.joinChat(widget.chatDocument, context);
           } else {
-            chatScreenProvider.leaveChat(chatDocument.id, context);
+            chatScreenProvider.leaveChat(widget.chatDocument.id, context);
           }
         },
       )
@@ -77,39 +50,24 @@ class ChatScreenState extends State<ChatScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final ChatScreenArguments args = ModalRoute.of(context).settings.arguments;
-
-    ChatModel chatDocument = args.chatDocument;
 
     ChatScreenManager chatScreenProvider =
         Provider.of<ChatScreenManager>(context);
-    
-    // TODO: review later
-    // TODO: make sure works fast
-    // TODO: only have widget if it is a subchat
-    // return WillPopScope(
-    //   onWillPop: () async {
-    //     if (chatDocument.isSubchat) {
-    //       Navigator.of(context).popUntil(ModalRoute.withName('/chat'));
-    //     } else {
-    //       Navigator.of(context).pop();
-    //     }
-    //     return false;
-    //   },
+
     return Scaffold(
         appBar: new AppBar(
           title: new GestureDetector(
             onTap: () {
               Navigator.push(context, new MaterialPageRoute(builder: (context) {
                 return new DetailPage(
-                  chatDocument: chatDocument,
+                  chatDocument: widget.chatDocument,
                 );
               }));
             },
-            child: new Text(chatDocument.name),
+            child: new Text(widget.chatDocument.name),
           ),
           actions: AuthState.currentUser != null
-              ? _buildAppBarActions(chatDocument, chatScreenProvider)
+              ? _buildAppBarActions(widget.chatDocument, chatScreenProvider)
               : null,
         ),
         body: new Container(
@@ -117,14 +75,14 @@ class ChatScreenState extends State<ChatScreen>
             children: <Widget>[
               new Flexible(
                   child: MessagesList(
-                chatDocument: chatDocument,
+                chatDocument: widget.chatDocument,
               )),
-              new Divider(height: 1.0),
+              const Divider(height: 1.0),
               new Container(
                 decoration:
                     new BoxDecoration(color: Theme.of(context).cardColor),
                 child: AuthState.currentUser != null
-                    ? _buildTextComposer(chatDocument)
+                    ? new TextComposer(chatDocument: widget.chatDocument,)
                     : _buildRequestToLogIn(),
               ),
               new Builder(builder: (BuildContext context) {
@@ -142,24 +100,6 @@ class ChatScreenState extends State<ChatScreen>
         ));
   }
 
-  CupertinoButton getIOSSendButton() {
-    return new CupertinoButton(
-      child: new Text("Send"),
-      onPressed: _isComposingMessage
-          ? () => _textMessageSubmitted(_textEditingController.text)
-          : null,
-    );
-  }
-
-  IconButton getDefaultSendButton() {
-    return new IconButton(
-      icon: new Icon(Icons.send),
-      onPressed: _isComposingMessage
-          ? () => _textMessageSubmitted(_textEditingController.text)
-          : null,
-    );
-  }
-
   Widget _buildRequestToLogIn() {
     return new SizedBox(
       width: double.infinity,
@@ -174,8 +114,108 @@ class ChatScreenState extends State<ChatScreen>
       ),
     );
   }
+}
 
-  Widget _buildTextComposer(ChatModel chatDocument) {
+class TextComposer extends StatefulWidget {
+
+  final ChatModel chatDocument;
+
+  TextComposer({this.chatDocument});
+
+  @override
+  _TextComposerState createState() => _TextComposerState();
+}
+
+class _TextComposerState extends State<TextComposer> {
+  
+  final TextEditingController _textEditingController =
+      new TextEditingController();
+
+  bool _isComposingMessage = false;
+
+  File imageFile;
+
+  String imageURL;
+
+  final reference = Firestore.instance.collection('messages');
+
+  final ScrollController listScrollController = new ScrollController();
+
+  final FocusNode focusNode = new FocusNode();
+
+  bool _isUploadingPhoto = false;
+
+  Future uploadFile() async {
+    String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+    StorageReference reference = FirebaseStorage.instance.ref().child(fileName);
+    StorageUploadTask uploadTask = reference.putFile(imageFile);
+    StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
+    storageTaskSnapshot.ref.getDownloadURL().then((downloadUrl) {
+      imageURL = downloadUrl;
+    }, onError: (err) {});
+  }
+
+  CupertinoButton getIOSSendButton() {
+    return new CupertinoButton(
+      child: new Text("Send"),
+      onPressed: _isComposingMessage
+          ? () => _textMessageSubmitted(_textEditingController.text)
+          : null,
+    );
+  }
+
+  Future<Null> _textMessageSubmitted(String text) async {
+    _textEditingController.clear();
+    FocusScope.of(context).requestFocus(focusNode);
+    setState(() {
+      _isComposingMessage = false;
+    });
+    _sendMessage(messageText: text, imageUrl: null);
+  }
+
+  void _sendMessage({String messageText, String imageUrl}) {
+    if (imageUrl == null && messageText.trim().length == 0) {
+      //print("Not sending anything");
+    } else {
+      var now = new DateTime.now().millisecondsSinceEpoch;
+      now = now ~/ 1000;
+      var firestoreTimestamp = Timestamp(now, 0);
+
+      reference.document().setData({
+        'chat': {
+          'id': widget.chatDocument.id,
+          'name': widget.chatDocument.name,
+          'avatarURL': widget.chatDocument.avatarURL
+        },
+        'chatId': widget.chatDocument.id,
+        'imageURL': imageUrl,
+        'text': messageText,
+        'timestamp': firestoreTimestamp,
+        'sender': {
+          'facebookID': AuthState.currentUser['facebookID'],
+          'id': AuthState.currentUser.documentID,
+          'name': AuthState.currentUser['name']
+        },
+        'repliesCount':
+            0 // 0 either means no chat created or no messages in the thread, so not displaying anythign
+      });
+
+      // send the cloud message notification
+
+    }
+  }
+
+  IconButton getDefaultSendButton() {
+    return new IconButton(
+      icon: new Icon(Icons.send),
+      onPressed: _isComposingMessage
+          ? () => _textMessageSubmitted(_textEditingController.text)
+          : null,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return new IconTheme(
         data: new IconThemeData(
           color: _isComposingMessage
@@ -225,7 +265,7 @@ class ChatScreenState extends State<ChatScreen>
                             storageTaskSnapshot.ref
                                 .getDownloadURL()
                                 .then((downloadUrl) {
-                              _sendMessage(chatDocument,
+                              _sendMessage(
                                   messageText: null,
                                   imageUrl: downloadUrl.toString());
 
@@ -263,49 +303,5 @@ class ChatScreenState extends State<ChatScreen>
             ],
           ),
         ));
-  }
-
-  Future<Null> _textMessageSubmitted(String text) async {
-    ChatModel chatDocument = ModalRoute.of(context).settings.arguments;
-
-    _textEditingController.clear();
-    FocusScope.of(context).requestFocus(focusNode);
-    setState(() {
-      _isComposingMessage = false;
-    });
-    _sendMessage(chatDocument, messageText: text, imageUrl: null);
-  }
-
-  void _sendMessage(ChatModel chatDocument,
-      {String messageText, String imageUrl}) {
-    if (imageUrl == null && messageText.trim().length == 0) {
-      //print("Not sending anything");
-    } else {
-      var now = new DateTime.now().millisecondsSinceEpoch;
-      now = now ~/ 1000;
-      var firestoreTimestamp = Timestamp(now, 0);
-
-      reference.document().setData({
-        'chat': {
-          'id': chatDocument.id,
-          'name': chatDocument.name,
-          'avatarURL': chatDocument.avatarURL
-        },
-        'chatId': chatDocument.id,
-        'imageURL': imageUrl,
-        'text': messageText,
-        'timestamp': firestoreTimestamp,
-        'sender': {
-          'facebookID': AuthState.currentUser['facebookID'],
-          'id': AuthState.currentUser.documentID,
-          'name': AuthState.currentUser['name']
-        },
-        'repliesCount':
-            0 // 0 either means no chat created or no messages in the thread, so not displaying anythign
-      });
-
-      // send the cloud message notification
-
-    }
   }
 }

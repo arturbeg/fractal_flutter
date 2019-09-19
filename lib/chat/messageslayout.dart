@@ -5,10 +5,19 @@ import 'package:provider/provider.dart';
 import './chatmessagelistitem.dart';
 import '../model/models.dart';
 
-class MessagesList extends StatelessWidget {
+// TODO: cached messages firebase provider and consumer in here
+
+class MessagesList extends StatefulWidget {
   final ChatModel chatDocument;
 
   MessagesList({this.chatDocument});
+
+  @override
+  _MessagesListState createState() => _MessagesListState();
+}
+
+class _MessagesListState extends State<MessagesList> {
+  CachedMessagesFirebase messagesProvider;
 
   _checkPreviousMessageSameSender(
       DocumentSnapshot nextMessage, DocumentSnapshot currentMessage) {
@@ -16,6 +25,17 @@ class MessagesList extends StatelessWidget {
     String nextMessageSenderId = nextMessage.data['sender']['id'];
     String currentMessageSenderId = currentMessage['sender']['id'];
     return nextMessageSenderId == currentMessageSenderId;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+      messagesProvider =
+          Provider.of<CachedMessagesFirebase>(context, listen: false);
+    });
+    // TODO: could use the duration in here to do every 30 min
+    messagesProvider.fetchMessagesForCache(widget.chatDocument.id);
   }
 
   _buildMessagesList(snapshot) {
@@ -52,8 +72,6 @@ class MessagesList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    CachedMessagesFirebase messagesProvider =
-        Provider.of<CachedMessagesFirebase>(context);
     return new GestureDetector(
       behavior: HitTestBehavior.opaque,
       onPanDown: (_) {
@@ -62,8 +80,9 @@ class MessagesList extends StatelessWidget {
       child: new Container(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: StreamBuilder<QuerySnapshot>(
-            initialData: messagesProvider.getCachedMessages(chatDocument.id),
-            stream: messagesProvider.fetchMessages(chatDocument.id),
+            initialData:
+                messagesProvider.getCachedMessages(widget.chatDocument.id),
+            stream: messagesProvider.fetchMessages(widget.chatDocument.id),
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasError)

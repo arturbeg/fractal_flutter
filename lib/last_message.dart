@@ -14,12 +14,11 @@ class LastMessages with ChangeNotifier {
     if (_cachedLastMessages.containsKey(parentChatId)) {
       return _cachedLastMessages[parentChatId];
     } else {
-      _fetchLastMessageForCache(parentChatId);
       return null;
     }
   }
 
-  void _fetchLastMessageForCache(String chatId) async {
+  void fetchLastMessageForCache(String chatId) async {
     QuerySnapshot documents = await Firestore.instance
         .collection('messages')
         .where('chatId', isEqualTo: chatId)

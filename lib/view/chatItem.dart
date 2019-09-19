@@ -15,15 +15,34 @@ import '../login.dart';
 import 'package:provider/provider.dart';
 
 class ChatScreenArguments {
-  final chatDocument;
+  final ChatModel chatDocument;
   ChatScreenArguments(this.chatDocument);
 }
 
-class ChatItem extends StatelessWidget {
+class ChatItem extends StatefulWidget {
   final ChatModel chatDocument;
 
   ChatItem({this.chatDocument});
 
+  @override
+  _ChatItemState createState() => _ChatItemState();
+}
+
+class _ChatItemState extends State<ChatItem> {
+  
+  LastMessages lastMessagesProvider;
+  ReportedChatIds reportedChatsProvider;
+  
+  @override
+  initState() {
+    super.initState();
+    setState(() {
+      reportedChatsProvider = Provider.of<ReportedChatIds>(context, listen: false);
+      lastMessagesProvider = Provider.of<LastMessages>(context, listen: false);  
+    });
+    lastMessagesProvider.fetchLastMessageForCache(widget.chatDocument.id);
+  }
+  
   String _getShortenedName(
       String name, BuildContext context, bool isChatReported) {
     name = name.replaceAll("\n", " ");
@@ -57,11 +76,11 @@ class ChatItem extends StatelessWidget {
   }
 
   _buildChatItemMiniInfo() {
-    if (chatDocument.isSubchat) {
+    if (widget.chatDocument.isSubchat) {
       return Column(
         children: <Widget>[
           Text(
-            timeago.format(chatDocument.lastMessageTimestamp,
+            timeago.format(widget.chatDocument.lastMessageTimestamp,
                 locale: 'en_short'),
             style: TextStyle(color: Colors.black45),
           ),
@@ -88,11 +107,11 @@ class ChatItem extends StatelessWidget {
       return Column(
         children: <Widget>[
           Text(
-            timeago.format(chatDocument.lastMessageTimestamp,
+            timeago.format(widget.chatDocument.lastMessageTimestamp,
                 locale: 'en_short'),
             style: TextStyle(color: Colors.black45),
           ),
-          Text(shortenNumber(chatDocument.reddit.reddit_score)),
+          Text(shortenNumber(widget.chatDocument.reddit.reddit_score)),
         ],
       );
     }
@@ -101,7 +120,7 @@ class ChatItem extends StatelessWidget {
   Future<String> _subchatParentMessageRepliesCount() {
     return Firestore.instance
         .collection('messages')
-        .document(chatDocument.parentMessageId)
+        .document(widget.chatDocument.parentMessageId)
         .get()
         .then((parentMessage) {
       return parentMessage.data['repliesCount'].toString();
@@ -111,11 +130,12 @@ class ChatItem extends StatelessWidget {
   _buildChatItemListTile(ReportedChatIds reportedChatsProvider,
       LastMessages lastMessagesProvider, BuildContext context) {
     final isChatReported =
-        reportedChatsProvider.isChatReported(chatDocument.id);
+        reportedChatsProvider.isChatReported(widget.chatDocument.id);
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).pushNamed('/chat',
-            arguments: ChatScreenArguments(chatDocument));
+        Navigator.push(context, new MaterialPageRoute(builder: (context) {
+          return new ChatScreen(chatDocument: widget.chatDocument);
+        }));
       },
       // TODO: Turn into a stateless widget?
       child: Column(
@@ -140,7 +160,7 @@ class ChatItem extends StatelessWidget {
                                         MediaQuery.of(context).size.width *
                                             0.7),
                                 child: new Text(
-                                  _getShortenedName(chatDocument.name,
+                                  _getShortenedName(widget.chatDocument.name,
                                       context, isChatReported),
                                   style: new TextStyle(
                                       fontWeight: FontWeight.w500,
@@ -171,8 +191,8 @@ class ChatItem extends StatelessWidget {
                                         child: StreamBuilder<QuerySnapshot>(
                                           initialData: lastMessagesProvider
                                               .getCachedLastMessage(
-                                                  chatDocument.id),
-                                          stream: lastMessagesProvider.fetchLastMessageFirebaseStream(chatDocument.id),
+                                                  widget.chatDocument.id),
+                                          stream: lastMessagesProvider.fetchLastMessageFirebaseStream(widget.chatDocument.id),
                                           builder: (BuildContext context,
                                               AsyncSnapshot<QuerySnapshot>
                                                   snapshot) {
@@ -252,7 +272,7 @@ class ChatItem extends StatelessWidget {
 
   _buildReportChatAction(BuildContext context, ReportedChatIds reportedChatsProvider) {
     final isChatReported =
-        reportedChatsProvider.isChatReported(chatDocument.id);
+        reportedChatsProvider.isChatReported(widget.chatDocument.id);
     return isChatReported == null
         ? null
         : IconSlideAction(
@@ -261,15 +281,12 @@ class ChatItem extends StatelessWidget {
             icon: Icons.flag,
             onTap: () {
               reportedChatsProvider.updateReportedChatFirebase(
-                  chatDocument.id, isChatReported, context);
+                  widget.chatDocument.id, isChatReported, context);
             });
   }
 
   @override
   Widget build(BuildContext context) {
-    final reportedChatsProvider = Provider.of<ReportedChatIds>(context);
-    final lastMessagesProvider = Provider.of<LastMessages>(context);
-    // reportedChatsProvider.isChatReportedFetch(chatDocument.id);
     return new Slidable(
       actionPane: SlidableDrawerActionPane(),
       actionExtentRatio: 0.25,

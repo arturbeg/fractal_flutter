@@ -10,7 +10,6 @@ class ReportedChatIds with ChangeNotifier {
   HashMap<String, bool> _cachedReportedChats = HashMap<String, bool>();
 
   bool isChatReported(String chatId) {
-    print("Checking if the chat is reported");
     if (AuthState.currentUser != null) {
       if (_cachedReportedChats.containsKey(chatId)) {
         return _cachedReportedChats[chatId];
@@ -23,6 +22,7 @@ class ReportedChatIds with ChangeNotifier {
     }
   }
 
+  // TODO: make sure it updates the reported chats in the hash map during the lifespan of the app
   void updateCachedReportedChats(String chatId, bool isChatReported) {
     print("Updating reported chats cache");
     _cachedReportedChats[chatId] = isChatReported;
