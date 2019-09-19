@@ -13,6 +13,7 @@ import './chatDetail.dart';
 import '../auth_state.dart';
 import '../model/models.dart';
 import '../login.dart';
+import 'package:fractal/providers/anonimity_switch_provider.dart';
 
 class ChatScreen extends StatefulWidget {
   final ChatModel chatDocument;
@@ -174,6 +175,7 @@ class _TextComposerState extends State<TextComposer> {
   }
 
   void _sendMessage({String messageText, String imageUrl}) {
+    AnonymitySwitch anonimityProvider = Provider.of<AnonymitySwitch>(context);
     if (imageUrl == null && messageText.trim().length == 0) {
       //print("Not sending anything");
     } else {
@@ -192,9 +194,12 @@ class _TextComposerState extends State<TextComposer> {
         'text': messageText,
         'timestamp': firestoreTimestamp,
         'sender': {
+          // TODO: if anonymous don't keep other data about the sender
           'facebookID': AuthState.currentUser['facebookID'],
           'id': AuthState.currentUser.documentID,
-          'name': AuthState.currentUser['name']
+          'name': AuthState.currentUser['name'],
+          'isAnonymous': anonimityProvider.isAnonymous,
+          'anonymousName': anonimityProvider.anonymousName
         },
         'repliesCount':
             0 // 0 either means no chat created or no messages in the thread, so not displaying anythign

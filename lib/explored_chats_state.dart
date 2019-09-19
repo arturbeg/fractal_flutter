@@ -11,7 +11,7 @@ class ExploreChatsCache {
   ExploreChatsCache._();
 
   setExploreChats(snapshot) {
-    print("Explored Chats Cache is set");
+   // print("Explored Chats Cache is set");
     ExploreChatsCache.snapshot = snapshot;
     _exploreChatsController.add(snapshot);
   }

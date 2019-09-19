@@ -24,7 +24,7 @@ class ReportedChatIds with ChangeNotifier {
 
   // TODO: make sure it updates the reported chats in the hash map during the lifespan of the app
   void updateCachedReportedChats(String chatId, bool isChatReported) {
-    print("Updating reported chats cache");
+   // print("Updating reported chats cache");
     _cachedReportedChats[chatId] = isChatReported;
     notifyListeners();
   }
@@ -49,7 +49,7 @@ class ReportedChatIds with ChangeNotifier {
 
   void updateReportedChatFirebase(
       String chatId, bool isChatReported, BuildContext context) async {
-    print("Update reported chat firebase");
+   // print("Update reported chat firebase");
 
     if (AuthState.currentUser != null) {
       Firestore.instance.runTransaction((transaction) async {

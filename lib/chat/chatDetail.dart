@@ -33,8 +33,8 @@ class _DetailPageState extends State<DetailPage>
     // TODO: implement initState
     super.initState();
     _tabController = new TabController(vsync: this, initialIndex: 1, length: 2);
-    print("THE URL IS");
-    print(widget.chatDocument.url == "");
+   // print("THE URL IS");
+   // print(widget.chatDocument.url == "");
   }
 
   @override
@@ -129,7 +129,7 @@ class _DetailPageState extends State<DetailPage>
   }
 
   Widget _getBody(tittle, description, link, context) { 
-    print(widget.chatDocument.isSubchat);  
+   // print(widget.chatDocument.isSubchat);  
     return new Container(
       margin: new EdgeInsets.all(15.0),
       child: new Column(

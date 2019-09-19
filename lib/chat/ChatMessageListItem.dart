@@ -30,6 +30,7 @@ class ChatMessageListItem extends StatefulWidget {
 
 class _ChatMessageListItemState extends State<ChatMessageListItem> {
   bool isSenderBlocked;
+  bool isAnonymous;
 
   @override
   void initState() {
@@ -42,6 +43,7 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
         .then((userDocument) {
       if (userDocument.data.containsKey('blockedUsers')) {
         final List blockedUsers = userDocument.data['blockedUsers'];
+        // TODO: put into a provider
         setState(() {
           isSenderBlocked = blockedUsers.contains(senderId);
         });
@@ -131,7 +133,7 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
     // },
 
     return Row(
-        children: _isSentMessage(widget.messageSnapshot['sender']['id'])
+        children: !_isSentMessage(widget.messageSnapshot['sender']['id'])
             ? getSentMessageLayout()
             : getReceivedMessageLayout());
   }
@@ -355,6 +357,9 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
   }
 
   _buildSenderProfilePhoto() {
+    bool isAnonymous =
+        widget.messageSnapshot.data['sender']['isAnonymous'] != null &&
+            widget.messageSnapshot.data['sender']['isAnonymous'];
     return new Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -367,7 +372,9 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
             imageUrl:
                 'https://graph.facebook.com/${widget.messageSnapshot['sender']['facebookID']}/picture?height=30',
             imageBuilder: (context, imageProvider) => new CircleAvatar(
-              backgroundImage: imageProvider,
+              backgroundImage: isAnonymous
+                  ? AssetImage('assets/default-avatar.png')
+                  : imageProvider,
             ),
           ),
         ),
@@ -376,7 +383,13 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
   }
 
   _buildSenderName() {
-    return new Text(widget.messageSnapshot['sender']['name'],
+    bool isAnonymous =
+        widget.messageSnapshot.data['sender']['isAnonymous'] != null &&
+            widget.messageSnapshot.data['sender']['isAnonymous'];
+    return new Text(
+        isAnonymous
+            ? widget.messageSnapshot['sender']['anonymousName']
+            : widget.messageSnapshot['sender']['name'],
         style: new TextStyle(
             fontSize: 14.0, color: Colors.black, fontWeight: FontWeight.bold));
   }

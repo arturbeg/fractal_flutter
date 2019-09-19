@@ -42,7 +42,7 @@ class _CustomTabState extends State<CustomTab> {
     return new InkWell(
       onTap: (){
         setSelectedItem(index);
-        print("click");
+       // print("click");
       },
       child: new Row(
         mainAxisSize: MainAxisSize.min,

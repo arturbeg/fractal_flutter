@@ -1,5 +1,7 @@
 import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fractal/providers/anonimity_switch_provider.dart';
+import 'package:provider/provider.dart';
 import './auth_state.dart';
 import './model/models.dart';
 import 'package:flutter/material.dart';
@@ -82,7 +84,6 @@ class _LoginPageState extends State<LoginPage> {
 
     if (isLoggedIn) {
       AuthState.instance.setUser(userDocument, profileUrl);
-
       SharedPreferences prefs;
       prefs = await SharedPreferences.getInstance();
       prefs.setString("id", userDocument.documentID);
@@ -94,7 +95,7 @@ class _LoginPageState extends State<LoginPage> {
       Navigator.of(context).pop();
       // make sure setState is not relevant in here
     } else {
-      print('Not a redirect back');
+      // print('Not a redirect back');
       setState(() {
         this.userDocument = userDocument;
         this.showCircularProgress = false;
@@ -194,21 +195,25 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   _displayUserData() {
+    AnonymitySwitch anonimityProvider = Provider.of<AnonymitySwitch>(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Container(
+            
             height: 200, // media query this
             width: 200,
             child: CachedNetworkImage(
-              imageUrl: 'https://graph.facebook.com/${AuthState.currentUser['facebookID']}/picture?height=200',
+              imageUrl:
+                  'https://graph.facebook.com/${AuthState.currentUser['facebookID']}/picture?height=200',
               imageBuilder: (context, imageProvider) => Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   image: DecorationImage(
-                      image: imageProvider,
-                      fit: BoxFit.cover,),
+                    image: anonimityProvider.isAnonymous ? AssetImage('assets/default-avatar.png') : imageProvider,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
               // TODO: placeholder can be like a placeholder avatar used for images within chats
@@ -218,9 +223,22 @@ class _LoginPageState extends State<LoginPage> {
           ),
           SizedBox(height: 28.0),
           Text(
-            AuthState.currentUser['name'],
+            !anonimityProvider.isAnonymous ?AuthState.currentUser['name'] : anonimityProvider.anonymousName,
             style: TextStyle(
               fontSize: 20.0,
+            ),
+          ),
+          new RaisedButton(
+            onPressed: anonimityProvider.updateAnonymity,
+            textColor: !anonimityProvider.isAnonymous ?Colors.white : Colors.black,
+            color: !anonimityProvider.isAnonymous
+                ? Color.fromRGBO(0, 132, 255, 0.7)
+                : Color.fromRGBO(230, 230, 230, 1.0),
+            padding: const EdgeInsets.all(8.0),
+            child: new Text(
+              anonimityProvider.isAnonymous
+                  ? "Anonymous"
+                  : "Public",
             ),
           ),
         ],

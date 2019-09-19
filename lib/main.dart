@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fractal/chat/chatscreen.dart';
 import 'package:fractal/chat_screen_provider.dart';
+import 'package:fractal/providers/anonimity_switch_provider.dart';
 import './WhatsAppHome.dart';
 import './auth_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -46,22 +47,20 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         showCircularProgress = true;
       });
-      print("Got the user");
+      // print("Got the user");
       Firestore.instance
           .collection('users')
           .document(prefs.getString("id"))
           .get()
           .then((userDocument) {
-        print(userDocument['name']);
+        // print(userDocument['name']);
         AuthState.instance.setUser(userDocument, "");
+
         setState(() {
           showCircularProgress = false;
         });
       });
-    } else {
-      // onLoginStatusChanged(false);
-      print('Is not logged in');
-    }
+    } else {}
   }
 
   @override
@@ -85,13 +84,13 @@ class _LoginPageState extends State<LoginPage> {
           ChangeNotifierProvider<CachedMessagesFirebase>(
               builder: (_) => CachedMessagesFirebase()),
           ChangeNotifierProvider<ChatScreenManager>(
-              builder: (_) => ChatScreenManager())
+              builder: (_) => ChatScreenManager()),
+          ChangeNotifierProvider<AnonymitySwitch>(
+              builder: (_) => AnonymitySwitch()),
         ],
         child: MaterialApp(
           // TODO: make sure works, add more
-          routes: {
-            '/chat': (context) => ChatScreen()
-            },
+          routes: {'/chat': (context) => ChatScreen()},
           debugShowCheckedModeBanner: false,
           home: Scaffold(
               appBar: AppBar(

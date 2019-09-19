@@ -24,7 +24,13 @@ class _MessagesListState extends State<MessagesList> {
     // TODO: check for edge cases
     String nextMessageSenderId = nextMessage.data['sender']['id'];
     String currentMessageSenderId = currentMessage['sender']['id'];
-    return nextMessageSenderId == currentMessageSenderId;
+
+    // TODO: refactor
+    bool nextMessageIsAnonymous = nextMessage.data['sender']['isAnonymous']!=null ? nextMessage.data['sender']['isAnonymous'] :false;
+
+    bool currentMessageIsAnonymous = currentMessage.data['sender']['isAnonymous']!=null ? currentMessage.data['sender']['isAnonymous'] :false;
+
+    return (nextMessageSenderId == currentMessageSenderId && nextMessageIsAnonymous==currentMessageIsAnonymous);
   }
 
   @override

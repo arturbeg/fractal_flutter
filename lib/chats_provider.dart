@@ -71,7 +71,7 @@ class CachedChats with ChangeNotifier {
         .limit(70)
         .getDocuments()
         .then((snapshot) {
-      print("Updating Cached Explored Chats");
+     // print("Updating Cached Explored Chats");
       updatedCachedExploredChats(snapshot);
     });
 

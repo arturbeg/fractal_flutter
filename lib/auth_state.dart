@@ -17,5 +17,6 @@ class AuthState {
   }
 
   static DocumentSnapshot currentUser;
+  // TODO: serialisations
 }
 

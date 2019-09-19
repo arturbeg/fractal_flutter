@@ -79,7 +79,7 @@ class ChatState extends State<chats> with AutomaticKeepAliveClientMixin {
         child: Text('Log in to see your saved chats'),
         textColor: Colors.black,
         onPressed: () {
-          // print('pressed!');
+          //// print('pressed!');
           Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
             return new LoginPage(redirectBack: true);
           }));

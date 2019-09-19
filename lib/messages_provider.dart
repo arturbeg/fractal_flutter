@@ -13,7 +13,7 @@ class CachedMessagesFirebase with ChangeNotifier {
 
   QuerySnapshot getCachedMessages(String chatId) {
     if (_cachedMessages.containsKey(chatId)) {
-      print("Invoke cached messages");
+     // print("Invoke cached messages");
       return _cachedMessages[chatId];
     } else {
       return null;
