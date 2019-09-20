@@ -4,8 +4,6 @@ import 'dart:async';
 import 'package:async/async.dart';
 import 'package:fractal/auth_state.dart';
 
-
-
 /*
 https://stackoverflow.com/questions/53459669/so-what-is-the-simplest-approach-for-caching-in-flutter
 */
@@ -19,7 +17,6 @@ class CachedChats with ChangeNotifier {
   Future<QuerySnapshot> _exploredChatsFuture;
   // DateTime _lastFetchTime = DateTime.fromMillisecondsSinceEpoch(0);
   // Duration _cacheValidDuration = Duration(minutes: 30);
-
 
   CachedChats()
       :

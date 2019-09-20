@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fractal/pages/search.dart';
 import './chat/newChatPage.dart';
 import './pages/chats.dart';
 import './pages/profile.dart';
@@ -18,16 +19,11 @@ class WhatsAppHome extends StatefulWidget {
 
 class _WhatsAppHomeState extends State<WhatsAppHome>
     with SingleTickerProviderStateMixin {
-  int _selectedIndex = 1;
+  int _selectedIndex = 0;
 
   // depends on the loggedIn status
-  
-  final _widgetOptions = [
-    chats(),
-    SubredditsScreen(),
-    LoginPage()
-  ];
 
+  final _widgetOptions = [SubredditsScreen(), Search(), chats(),  LoginPage()];
 
   _onItemTapped(int index) {
     setState(() {
@@ -41,11 +37,14 @@ class _WhatsAppHomeState extends State<WhatsAppHome>
     // TODO: split this into StatelessWidgets one for searching, one for the initial home page
     return new Scaffold(
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-              icon: Icon(Icons.chat_bubble), title: Text('Saved')),
-          BottomNavigationBarItem(
               icon: Icon(Icons.home), title: Text('Explore')),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.search), title: Text('Search')),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.chat_bubble), title: Text('Saved')),
           BottomNavigationBarItem(
               icon: Icon(Icons.person), title: Text('Profile')),
         ],
@@ -53,9 +52,7 @@ class _WhatsAppHomeState extends State<WhatsAppHome>
         // fixedColor: Colors.deepPurple,
         onTap: _onItemTapped,
       ),
-      body: new Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
-      ),
+      body: _widgetOptions.elementAt(_selectedIndex),
     );
   }
 }

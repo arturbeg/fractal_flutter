@@ -24,7 +24,5 @@ class AlgoliaApplication {
     return snapshots;
   }
 
-
-
 }
 

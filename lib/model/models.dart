@@ -145,6 +145,21 @@ class ChatModel {
     timestamp = DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch);
 
     url = chatAlgoliaDocument['url'] != null ? chatAlgoliaDocument['url'] : "";
+
+    isSubchat = chatAlgoliaDocument['isSubchat'];
+
+    reddit = RedditModel(
+      author: chatAlgoliaDocument['reddit']['author'],
+      num_comments: chatAlgoliaDocument['reddit']['num_comments'],
+      rank: chatAlgoliaDocument['reddit']['rank'],
+      reddit_score: chatAlgoliaDocument['reddit']['reddit_score'],
+      shortlink: chatAlgoliaDocument['reddit']['shortlink'],
+      upvote_ratio: chatAlgoliaDocument['reddit']['upvote_ratio'],
+      id: chatAlgoliaDocument['reddit']['id'],
+      over_18: chatAlgoliaDocument['reddit']['over_18'],
+      subreddit: chatAlgoliaDocument['reddit']['subreddit'],
+      // created_utc: DateTime.
+    );
   }
 }
 
