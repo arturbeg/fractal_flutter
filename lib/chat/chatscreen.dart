@@ -3,6 +3,7 @@ import 'dart:core';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fractal/chat_screen_provider.dart';
+import 'package:fractal/providers/messaging_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
@@ -83,7 +84,9 @@ class ChatScreenState extends State<ChatScreen>
                 decoration:
                     new BoxDecoration(color: Theme.of(context).cardColor),
                 child: AuthState.currentUser != null
-                    ? new TextComposer(chatDocument: widget.chatDocument,)
+                    ? new TextComposer(
+                        chatDocument: widget.chatDocument,
+                      )
                     : _buildRequestToLogIn(),
               ),
               new Builder(builder: (BuildContext context) {
@@ -118,7 +121,6 @@ class ChatScreenState extends State<ChatScreen>
 }
 
 class TextComposer extends StatefulWidget {
-
   final ChatModel chatDocument;
 
   TextComposer({this.chatDocument});
@@ -128,185 +130,77 @@ class TextComposer extends StatefulWidget {
 }
 
 class _TextComposerState extends State<TextComposer> {
-  
-  final TextEditingController _textEditingController =
-      new TextEditingController();
-
-  bool _isComposingMessage = false;
-
-  File imageFile;
-
-  String imageURL;
-
-  final reference = Firestore.instance.collection('messages');
-
-  final ScrollController listScrollController = new ScrollController();
-
-  final FocusNode focusNode = new FocusNode();
-
-  bool _isUploadingPhoto = false;
-
-  Future uploadFile() async {
-    String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-    StorageReference reference = FirebaseStorage.instance.ref().child(fileName);
-    StorageUploadTask uploadTask = reference.putFile(imageFile);
-    StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
-    storageTaskSnapshot.ref.getDownloadURL().then((downloadUrl) {
-      imageURL = downloadUrl;
-    }, onError: (err) {});
-  }
-
-  CupertinoButton getIOSSendButton() {
+  CupertinoButton getIOSSendButton(MessagingManager messagingProvider) {
     return new CupertinoButton(
       child: new Text("Send"),
-      onPressed: _isComposingMessage
-          ? () => _textMessageSubmitted(_textEditingController.text)
+      onPressed: messagingProvider.isComposingMessage
+          ? () => messagingProvider.textMessageSubmitted(messagingProvider.textEditingController.text)
           : null,
     );
   }
 
-  Future<Null> _textMessageSubmitted(String text) async {
-    _textEditingController.clear();
-    FocusScope.of(context).requestFocus(focusNode);
-    setState(() {
-      _isComposingMessage = false;
-    });
-    _sendMessage(messageText: text, imageUrl: null);
-  }
-
-  void _sendMessage({String messageText, String imageUrl}) {
-    AnonymitySwitch anonimityProvider = Provider.of<AnonymitySwitch>(context);
-    if (imageUrl == null && messageText.trim().length == 0) {
-      //print("Not sending anything");
-    } else {
-      var now = new DateTime.now().millisecondsSinceEpoch;
-      now = now ~/ 1000;
-      var firestoreTimestamp = Timestamp(now, 0);
-
-      reference.document().setData({
-        'chat': {
-          'id': widget.chatDocument.id,
-          'name': widget.chatDocument.name,
-          'avatarURL': widget.chatDocument.avatarURL
-        },
-        'chatId': widget.chatDocument.id,
-        'imageURL': imageUrl,
-        'text': messageText,
-        'timestamp': firestoreTimestamp,
-        'sender': {
-          // TODO: if anonymous don't keep other data about the sender
-          'facebookID': AuthState.currentUser['facebookID'],
-          'id': AuthState.currentUser.documentID,
-          'name': AuthState.currentUser['name'],
-          'isAnonymous': anonimityProvider.isAnonymous,
-          'anonymousName': anonimityProvider.anonymousName
-        },
-        'repliesCount':
-            0 // 0 either means no chat created or no messages in the thread, so not displaying anythign
-      });
-
-      // send the cloud message notification
-
-    }
-  }
-
-  IconButton getDefaultSendButton() {
+  IconButton getDefaultSendButton(MessagingManager messagingProvider) {
     return new IconButton(
       icon: new Icon(Icons.send),
-      onPressed: _isComposingMessage
-          ? () => _textMessageSubmitted(_textEditingController.text)
+      onPressed: messagingProvider.isComposingMessage
+          ? () => messagingProvider.textMessageSubmitted(messagingProvider.textEditingController.text)
           : null,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return new IconTheme(
-        data: new IconThemeData(
-          color: _isComposingMessage
-              ? Theme.of(context).accentColor
-              : Theme.of(context).disabledColor,
-        ),
-        child: new Container(
-          margin: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: new Row(
-            children: <Widget>[
-              new Container(
-                margin: new EdgeInsets.symmetric(horizontal: 4.0),
-                child: _isUploadingPhoto
-                    ? CircularProgressIndicator()
-                    : IconButton(
-                        icon: new Icon(
-                          Icons.insert_photo,
-                          color: Theme.of(context).accentColor,
-                          size: 32.0,
-                        ),
-                        onPressed: () async {
-                          if (!_isUploadingPhoto) {
-                            setState(() {
-                              _isUploadingPhoto = true;
-                            });
-                            File imageFile = await ImagePicker.pickImage(
-                                maxWidth: 500.0, // 640.0 is default vga
-                                source: ImageSource.gallery);
-                            if (imageFile == null) {
-                              setState(() {
-                                _isUploadingPhoto = false;
-                              });
-                            }
-                            int timestamp =
-                                new DateTime.now().millisecondsSinceEpoch;
-                            StorageReference storageReference = FirebaseStorage
-                                .instance
-                                .ref()
-                                .child("img_" + timestamp.toString() + ".jpg");
+    AnonymitySwitch anonimitySwitchProvider = Provider.of<AnonymitySwitch>(context);
 
-                            StorageUploadTask uploadTask =
-                                storageReference.putFile(imageFile);
-
-                            StorageTaskSnapshot storageTaskSnapshot =
-                                await uploadTask.onComplete;
-
-                            storageTaskSnapshot.ref
-                                .getDownloadURL()
-                                .then((downloadUrl) {
-                              _sendMessage(
-                                  messageText: null,
-                                  imageUrl: downloadUrl.toString());
-
-                              setState(() {
-                                _isUploadingPhoto = false;
-                              });
-                            });
-                          }
-                        }),
-              ),
-              new Flexible(
-                child: new TextField(
-                  keyboardType: TextInputType.multiline,
-                  // TODO: set limit to number of lines
-                  maxLines: null,
-                  focusNode: focusNode,
-                  controller: _textEditingController,
-                  onChanged: (String messageText) {
-                    setState(() {
-                      messageText = messageText.trim();
-                      _isComposingMessage = messageText.length > 0;
-                    });
-                  },
-                  onSubmitted: _textMessageSubmitted,
-                  decoration:
-                      new InputDecoration.collapsed(hintText: "Send a message"),
+    return ChangeNotifierProvider(
+        builder: (context) => MessagingManager(chatDocument: widget.chatDocument, context: context, anonimitySwitchProvider: anonimitySwitchProvider),
+        child: Consumer<MessagingManager>(
+          builder: (context, messagingProvider, child) {
+            return new IconTheme(
+                data: new IconThemeData(
+                  color: messagingProvider.isComposingMessage
+                      ? Theme.of(context).accentColor
+                      : Theme.of(context).disabledColor,
                 ),
-              ),
-              new Container(
-                margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                child: Theme.of(context).platform == TargetPlatform.iOS
-                    ? getIOSSendButton()
-                    : getDefaultSendButton(),
-              ),
-            ],
-          ),
+                child: new Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: new Row(
+                    children: <Widget>[
+                      new Container(
+                        margin: new EdgeInsets.symmetric(horizontal: 4.0),
+                        child: messagingProvider.isUploadingPhoto
+                            ? CircularProgressIndicator()
+                            : IconButton(
+                                icon: new Icon(
+                                  Icons.insert_photo,
+                                  color: Theme.of(context).accentColor,
+                                  size: 32.0,
+                                ),
+                                onPressed: () async {}),
+                      ),
+                      new Flexible(
+                        child: new TextField(
+                          keyboardType: TextInputType.multiline,
+                          // TODO: set limit to number of lines
+                          maxLines: null,
+                          focusNode: messagingProvider.focusNode,
+                          controller: messagingProvider.textEditingController,
+                          onChanged: messagingProvider.onChanged,
+                          onSubmitted: messagingProvider.textMessageSubmitted,
+                          decoration: new InputDecoration.collapsed(
+                              hintText: "Send a message"),
+                        ),
+                      ),
+                      new Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                        child: Theme.of(context).platform == TargetPlatform.iOS
+                            ? getIOSSendButton(messagingProvider)
+                            : getDefaultSendButton(messagingProvider),
+                      ),
+                    ],
+                  ),
+                ));
+          },
         ));
   }
 }

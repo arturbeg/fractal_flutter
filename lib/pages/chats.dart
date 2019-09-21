@@ -35,6 +35,22 @@ class ChatState extends State<chats> with AutomaticKeepAliveClientMixin {
     cachedChatsProvider.fetchSavedChatsForCache();
   }
 
+  _buildSavedChatsList(List<DocumentSnapshot> documents) {
+    return Scrollbar(
+        child: new ListView.builder(
+      physics: new ClampingScrollPhysics(),
+      itemCount: documents.length,
+      itemBuilder: (BuildContext context, int index) {
+        var chatDocument = ChatModel();
+        chatDocument
+            .setChatModelFromJoinedChatDocumentSnapshot(documents[index]);
+        return new ChatItem(
+          chatDocument: chatDocument,
+        );
+      },
+    ));
+  }
+
   _buildSavedChats(CachedChats cachedChatsProvider) {
     return StreamBuilder<QuerySnapshot>(
       initialData: cachedChatsProvider.getCachedSavedChats(),
@@ -48,24 +64,17 @@ class ChatState extends State<chats> with AutomaticKeepAliveClientMixin {
         if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
         switch (snapshot.connectionState) {
           case ConnectionState.waiting:
-            // TODO: later introduce a custom progress indicator
-            return Center(
-              child: CircularProgressIndicator(),
-            );
+            if (cachedChatsProvider.getCachedSavedChats() != null) {
+              return _buildSavedChatsList(
+                  cachedChatsProvider.getCachedSavedChats().documents);
+            } else {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+            return null;
           default:
-            return Scrollbar(
-                child: new ListView.builder(
-              physics: new ClampingScrollPhysics(),
-              itemCount: snapshot.data.documents.length,
-              itemBuilder: (BuildContext context, int index) {
-                var chatDocument = ChatModel();
-                chatDocument.setChatModelFromJoinedChatDocumentSnapshot(
-                    snapshot.data.documents[index]);
-                return new ChatItem(
-                  chatDocument: chatDocument,
-                );
-              },
-            ));
+            return _buildSavedChatsList(snapshot.data.documents);
         }
       },
     );

@@ -225,30 +225,6 @@ class _DetailPageState extends State<DetailPage>
     );
   }
 
-  // _getDate(date,origin) {
-
-  //   return new Container(
-  //     margin: new EdgeInsets.only(top: 4.0),
-  //     child: new Row(
-  //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //       children: <Widget>[
-  //         new Text(new DateUtil().buildDate(date),
-  //           style: new TextStyle(
-  //               fontSize: 10.0,
-  //               color: Colors.grey
-  //           ),
-  //         ),
-  //         new Text(origin,
-  //           style: new TextStyle(
-  //               fontSize: 10.0,
-  //               color: Colors.grey
-  //           ),
-  //         )
-  //       ],
-  //     ),
-  //   );
-  // }
-
   _getDescription(description) {
     return new Container(
       margin: new EdgeInsets.only(top: 20.0),
@@ -265,28 +241,3 @@ class _DetailPageState extends State<DetailPage>
   }
 }
 
-// Future shareNotice() async {
-//   await Share.share("$_title:\n$_link");
-// }
-
-// void _showDialog(context) {
-//   // flutter defined function
-//   showDialog(
-//     context: context,
-//     builder: (BuildContext context) {
-//       // return object of type Dialog
-//       return AlertDialog(
-//         content: new Text(strl.trans("text_copy")),
-//         actions: <Widget>[
-//           // usually buttons at the bottom of the dialog
-//           new FlatButton(
-//             child: new Text(strl.trans("text_fechar")),
-//             onPressed: () {
-//               Navigator.of(context).pop();
-//             },
-//           ),
-//         ],
-//       );
-//     },
-//   );
-// }

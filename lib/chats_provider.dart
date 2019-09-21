@@ -25,7 +25,7 @@ class CachedChats with ChangeNotifier {
             .collection('chats')
             .where('isSubchat', isEqualTo: false)
             .orderBy('reddit.rank')
-            .limit(70)
+            .limit(30)
             .getDocuments();
 
   QuerySnapshot getCachedSavedChats() {
@@ -68,7 +68,7 @@ class CachedChats with ChangeNotifier {
         .collection('chats')
         .where('isSubchat', isEqualTo: false)
         .orderBy('reddit.rank')
-        .limit(70)
+        .limit(30)
         .getDocuments();
   }
 

@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fractal/chat/chatscreen.dart';
 import 'package:fractal/chat_screen_provider.dart';
 import 'package:fractal/providers/anonimity_switch_provider.dart';
+import 'package:fractal/providers/messaging_provider.dart';
 import './WhatsAppHome.dart';
 import './auth_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';

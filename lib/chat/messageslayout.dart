@@ -26,11 +26,18 @@ class _MessagesListState extends State<MessagesList> {
     String currentMessageSenderId = currentMessage['sender']['id'];
 
     // TODO: refactor
-    bool nextMessageIsAnonymous = nextMessage.data['sender']['isAnonymous']!=null ? nextMessage.data['sender']['isAnonymous'] :false;
+    bool nextMessageIsAnonymous =
+        nextMessage.data['sender']['isAnonymous'] != null
+            ? nextMessage.data['sender']['isAnonymous']
+            : false;
 
-    bool currentMessageIsAnonymous = currentMessage.data['sender']['isAnonymous']!=null ? currentMessage.data['sender']['isAnonymous'] :false;
+    bool currentMessageIsAnonymous =
+        currentMessage.data['sender']['isAnonymous'] != null
+            ? currentMessage.data['sender']['isAnonymous']
+            : false;
 
-    return (nextMessageSenderId == currentMessageSenderId && nextMessageIsAnonymous==currentMessageIsAnonymous);
+    return (nextMessageSenderId == currentMessageSenderId &&
+        nextMessageIsAnonymous == currentMessageIsAnonymous);
   }
 
   @override
@@ -93,7 +100,11 @@ class _MessagesListState extends State<MessagesList> {
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasError)
                 return new Text('Error: ${snapshot.error}');
-
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
               return _buildMessagesList(snapshot);
             },
           )),
