@@ -21,9 +21,7 @@ class chats extends StatefulWidget {
   }
 }
 
-class ChatState extends State<chats> with AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
+class ChatState extends State<chats>{
   CachedChats cachedChatsProvider;
 
   @override
@@ -44,6 +42,7 @@ class ChatState extends State<chats> with AutomaticKeepAliveClientMixin {
         var chatDocument = ChatModel();
         chatDocument
             .setChatModelFromJoinedChatDocumentSnapshot(documents[index]);
+
         return new ChatItem(
           chatDocument: chatDocument,
         );
@@ -99,7 +98,6 @@ class ChatState extends State<chats> with AutomaticKeepAliveClientMixin {
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     if (AuthState.currentUser == null) {
       return _buildSuggestionToLogIn();
     } else {

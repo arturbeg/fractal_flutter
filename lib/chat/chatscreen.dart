@@ -27,10 +27,7 @@ class ChatScreen extends StatefulWidget {
   }
 }
 
-class ChatScreenState extends State<ChatScreen>
-    with AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
+class ChatScreenState extends State<ChatScreen> {
 
   _buildAppBarActions(
       ChatModel chatDocument, ChatScreenManager chatScreenProvider) {
@@ -51,8 +48,6 @@ class ChatScreenState extends State<ChatScreen>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-
     ChatScreenManager chatScreenProvider =
         Provider.of<ChatScreenManager>(context);
 
@@ -176,7 +171,7 @@ class _TextComposerState extends State<TextComposer> {
                                   color: Theme.of(context).accentColor,
                                   size: 32.0,
                                 ),
-                                onPressed: () async {}),
+                                onPressed: messagingProvider.uploadPhoto),
                       ),
                       new Flexible(
                         child: new TextField(

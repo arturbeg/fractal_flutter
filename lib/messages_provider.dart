@@ -33,7 +33,7 @@ class CachedMessagesFirebase with ChangeNotifier {
   void updateCachedMessages(
       String chatId, QuerySnapshot updatedCachedMessages) {
     _cachedMessages[chatId] = updatedCachedMessages;
-    notifyListeners();
+    // notifyListeners();
   }
 
   fetchMessages(chatId) {

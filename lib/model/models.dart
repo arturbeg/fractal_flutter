@@ -35,6 +35,7 @@ class ChatModel {
         id: joinedChatDocument['owner']['id'],
         name: joinedChatDocument['owner']['name']);
     timestamp = joinedChatDocument['chatTimestamp'].toDate();
+    
     lastMessageTimestamp = joinedChatDocument['lastMessageTimestamp'].toDate();
 
     parentChat = ParentChatModel(

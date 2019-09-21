@@ -44,13 +44,19 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
       if (userDocument.data.containsKey('blockedUsers')) {
         final List blockedUsers = userDocument.data['blockedUsers'];
         // TODO: put into a provider
-        setState(() {
-          isSenderBlocked = blockedUsers.contains(senderId);
-        });
+        if (mounted) {
+          setState(() {
+            isSenderBlocked = blockedUsers.contains(senderId);
+          });
+        }
       } else {
-        setState(() {
+
+        if (mounted) {
+          setState(() {
           isSenderBlocked = false;
         });
+        }
+
       }
     });
   }
@@ -229,9 +235,11 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
                     ),
                   );
 
-                  setState(() {
-                    isSenderBlocked = !isSenderBlocked;
-                  });
+                  if (mounted) {
+                    setState(() {
+                      isSenderBlocked = !isSenderBlocked;
+                    });
+                  }
                 });
               } else {
                 Navigator.of(context)

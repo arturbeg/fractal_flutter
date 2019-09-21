@@ -40,8 +40,7 @@ class MessagingManager extends ChangeNotifier {
     notifyListeners();
   }
 
-  void uploadPhoto(
-      AnonymitySwitch anonimityProvider, ChatModel chatDocument) async {
+  void uploadPhoto() async {
     if (!_isUploadingPhoto) {
       _isUploadingPhoto = true;
       notifyListeners();

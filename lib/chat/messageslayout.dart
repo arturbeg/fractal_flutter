@@ -42,11 +42,10 @@ class _MessagesListState extends State<MessagesList> {
 
   @override
   void initState() {
+    print('init');
     super.initState();
-    setState(() {
-      messagesProvider =
-          Provider.of<CachedMessagesFirebase>(context, listen: false);
-    });
+    messagesProvider =
+        Provider.of<CachedMessagesFirebase>(context, listen: false);
     // TODO: could use the duration in here to do every 30 min
     messagesProvider.fetchMessagesForCache(widget.chatDocument.id);
   }
@@ -77,9 +76,9 @@ class _MessagesListState extends State<MessagesList> {
         ),
       );
     } else {
-      return Center(
-        child: CircularProgressIndicator(),
-      );
+      // return Center(
+      //   child: CircularProgressIndicator(),
+      // );
     }
   }
 
@@ -100,11 +99,11 @@ class _MessagesListState extends State<MessagesList> {
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasError)
                 return new Text('Error: ${snapshot.error}');
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
+              // if (snapshot.connectionState == ConnectionState.waiting) {
+              //   return Center(
+              //     child: CircularProgressIndicator(),
+              //   );
+              // }
               return _buildMessagesList(snapshot);
             },
           )),

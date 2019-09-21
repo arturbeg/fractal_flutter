@@ -47,6 +47,7 @@ class ChatScreenManager with ChangeNotifier {
   }
 
   Future<bool> leaveChat(String chatId, BuildContext context) async {
+    // TODO: update saved messages cache
     if (AuthState.currentUser != null) {
       final QuerySnapshot result = await Firestore.instance
           .collection('joinedChats')
@@ -67,6 +68,7 @@ class ChatScreenManager with ChangeNotifier {
   }
 
   joinChat(ChatModel chatDocument, BuildContext context) {
+    // TODO: update saved messages cache
     if (AuthState.currentUser != null) {
       final reference = Firestore.instance.collection('joinedChats');
       reference.document().setData({
