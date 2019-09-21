@@ -42,7 +42,6 @@ class _MessagesListState extends State<MessagesList> {
 
   @override
   void initState() {
-    print('init');
     super.initState();
     messagesProvider =
         Provider.of<CachedMessagesFirebase>(context, listen: false);
@@ -76,9 +75,9 @@ class _MessagesListState extends State<MessagesList> {
         ),
       );
     } else {
-      // return Center(
-      //   child: CircularProgressIndicator(),
-      // );
+      return Center(
+        child: CircularProgressIndicator(),
+      );
     }
   }
 
