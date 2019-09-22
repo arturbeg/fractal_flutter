@@ -5,23 +5,28 @@ import '../view/chatItem.dart';
 import '../chats_provider.dart';
 
 class explore extends StatelessWidget {
-  _buildListView(documents) {
+  _buildListView(List<ChatModel> documents) {
     if (documents != null) {
-      return new Scrollbar(
-          child: new ListView.builder(
-        physics: new ClampingScrollPhysics(),
-        itemCount: documents.length,
-        itemBuilder: (BuildContext context, int index) {
-          var chatDocument = ChatModel();
-          chatDocument.setChatModelFromDocumentSnapshot(documents[index]);
-          return new ChatItem(
-            chatDocument: chatDocument,
-          );
-        },
-      ));
+      if (documents.length == 0) {
+        return Center(
+          child: Text("No chats available"),
+        );
+      } else {
+        return new Scrollbar(
+            child: new ListView.builder(
+          physics: new ClampingScrollPhysics(),
+          itemCount: documents.length,
+          itemBuilder: (BuildContext context, int index) {
+            return new ChatItem(
+              chatDocument: documents[index],
+            );
+          },
+        ));
+      }
     } else {
-      // TODO: placeholder rectange like on Youtube or instagram
-      return Text("Nothing to display");
+      return Center(
+        child: CircularProgressIndicator(),
+      );
     }
   }
 
@@ -35,33 +40,11 @@ class explore extends StatelessWidget {
         title: Text("r/worldnews"),
       ),
       body: RefreshIndicator(
-        onRefresh: chatsProvider.handleRefresh,
+        onRefresh: chatsProvider.fetchExploredChatsForCache,
         color: Colors.blue,
         backgroundColor: Colors.white,
-        child: FutureBuilder(
-            initialData: chatsProvider.cachedExploredChats,
-            future: chatsProvider.exploredChatsFuture,
-            builder: (context, snapshot) {
-              switch (snapshot.connectionState) {
-                case ConnectionState.none:
-                  return Text('none');
-                case ConnectionState.active:
-                case ConnectionState.waiting:
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                case ConnectionState.done:
-                  if (snapshot.hasError)
-                    return Text('Error: ${snapshot.error}');
-                  return _buildListView(snapshot.data.documents);
-              }
-              return null;
-            }),
+        child: _buildListView(chatsProvider.getCachedExploredChats()),
       ),
     );
   }
 }
-
-// TODO: load more functionality in here with a future builder
-
-// TODO: put this login into a provider

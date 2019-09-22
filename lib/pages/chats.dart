@@ -21,29 +21,34 @@ class chats extends StatefulWidget {
   }
 }
 
-class ChatState extends State<chats>{
-
+class ChatState extends State<chats> {
   @override
   void initState() {
     super.initState();
   }
 
   _buildSavedChatsList(List<ChatModel> documents) {
-    if(documents == null) {
+    if (documents == null) {
       return Center(
         child: CircularProgressIndicator(),
       );
     } else {
-      return Scrollbar(
-        child: new ListView.builder(
-      physics: new ClampingScrollPhysics(),
-      itemCount: documents.length,
-      itemBuilder: (BuildContext context, int index) {
-        return new ChatItem(
-          chatDocument: documents[index],
+      if (documents.length == 0) {
+        return Center(
+          child: Text("No saved chats yet"),
         );
-      },
-    ));
+      } else {
+        return Scrollbar(
+            child: new ListView.builder(
+          physics: new ClampingScrollPhysics(),
+          itemCount: documents.length,
+          itemBuilder: (BuildContext context, int index) {
+            return new ChatItem(
+              chatDocument: documents[index],
+            );
+          },
+        ));
+      }
     }
   }
 

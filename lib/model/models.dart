@@ -2,20 +2,20 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatModel {
   // TODO: would be cool to enforce types
-  var id;
-  var about; // String
-  var avatarURL; // String
+  String id;
+  String about; // String
+  String avatarURL; // String
   var lastMessage; // ChatLastMessageModel
-  var name; // String
+  String name; // String
   var owner; // ChatOwnerModel
-  var timestamp; // DateTime
+  DateTime timestamp; // DateTime
   var parentChat; // ParentChatModel
-  var isSubchat;
-  var parentMessageId;
+  bool isSubchat;
+  String parentMessageId;
   var lastMessageTimestamp;
   var user; // only related to the joinedChat case
   var url;
-  var reddit;
+  RedditModel reddit;
 
   getFirebaseTimestamp() {
     var millisecondsSinceEpoch = timestamp.millisecondsSinceEpoch;
