@@ -41,6 +41,7 @@ dependencies:
   flutter_spinkit: ^3.1.0
   provider: ^3.1.0
   random_string: ^1.1.0
+  circular_profile_avatar: ^1.0.2
 
   # loadmore: 
 

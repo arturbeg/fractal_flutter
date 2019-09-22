@@ -41,7 +41,7 @@ class _SearchState extends State<Search> {
               return Text("Connection state is NONE");
             case ConnectionState.active:
             case ConnectionState.waiting:
-              return Text("");
+              return Center(child: LinearProgressIndicator(),);
             case ConnectionState.done:
               if (snapshot.hasError) {
                 return Text("Error: ${snapshot.error}");

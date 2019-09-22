@@ -27,6 +27,14 @@ class ChatMessageListItem extends StatefulWidget {
 class _ChatMessageListItemState extends State<ChatMessageListItem> {
   bool isAnonymous;
 
+  @override
+  initState() {
+    super.initState();
+    // TODO: find a better place to do kickstart such as this one
+    BlockedUserManager temporaryProvider = Provider.of<BlockedUserManager>(context, listen: false);
+    temporaryProvider.kickstartBlockedUserIds();
+  }
+
   Future<bool> _getMessageHasSubchat(DocumentSnapshot messageSnapshot) async {
     final QuerySnapshot result = await Firestore.instance
         .collection('chats')
@@ -232,7 +240,7 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
         constraints:
             BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
         margin: widget.isPreviousMessageByTheSameSender &
-                _isSentMessage(widget.messageSnapshot['sender']['id'])
+                !_isSentMessage(widget.messageSnapshot['sender']['id'])
             ? EdgeInsets.only(
                 left:
                     38.0) // 30 + 8 (can turn into a variable, the inset values)
@@ -345,7 +353,7 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
                 _buildTextMessageContent(blockedUserProvider),
                 Container(
                     margin: widget.isPreviousMessageByTheSameSender &
-                            _isSentMessage(
+                            !_isSentMessage(
                                 widget.messageSnapshot['sender']['id'])
                         ? EdgeInsets.only(
                             left:
