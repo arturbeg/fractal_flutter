@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fractal/chat/chatscreen.dart';
 import 'package:fractal/chat_screen_provider.dart';
 import 'package:fractal/providers/anonimity_switch_provider.dart';
+import 'package:fractal/providers/blocked_user_provider.dart';
 import 'package:fractal/providers/messaging_provider.dart';
 import './WhatsAppHome.dart';
 import './auth_state.dart';
@@ -88,6 +89,8 @@ class _LoginPageState extends State<LoginPage> {
               builder: (_) => ChatScreenManager()),
           ChangeNotifierProvider<AnonymitySwitch>(
               builder: (_) => AnonymitySwitch()),
+          ChangeNotifierProvider<BlockedUserManager>(
+              builder: (_) => BlockedUserManager()),
         ],
         child: MaterialApp(
           // TODO: make sure works, add more

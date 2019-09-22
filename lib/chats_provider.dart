@@ -93,7 +93,6 @@ class CachedChats with ChangeNotifier {
     updatedCachedSavedChats(savedChatsChatModel);
   }
 
-
   Future<Null> fetchExploredChatsForCache() async {
     QuerySnapshot exploredChats = await Firestore.instance
         .collection('chats')
