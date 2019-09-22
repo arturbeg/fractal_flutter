@@ -3,6 +3,7 @@ import 'dart:core';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fractal/chat_screen_provider.dart';
+import 'package:fractal/chats_provider.dart';
 import 'package:fractal/providers/messaging_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -28,29 +29,33 @@ class ChatScreen extends StatefulWidget {
 }
 
 class ChatScreenState extends State<ChatScreen> {
-
-  _buildAppBarActions(
-      ChatModel chatDocument, ChatScreenManager chatScreenProvider) {
-    bool chatJoined = chatScreenProvider.getIsChatJoined(chatDocument.id);
-    return <Widget>[
-      IconButton(
-        icon: chatJoined ? Icon(Icons.bookmark) : Icon(Icons.bookmark_border),
-        onPressed: () {
-          if (!chatJoined) {
-            chatScreenProvider.joinChat(widget.chatDocument, context);
-          } else {
-            chatScreenProvider.leaveChat(widget.chatDocument.id, context);
-          }
-        },
-      )
-    ];
+  _buildAppBarActions(ChatModel chatDocument,
+      ChatScreenManager chatScreenProvider, CachedChats cachedChatsProvider) {
+    return cachedChatsProvider.isChatSaved(chatDocument) != null
+        ? <Widget>[
+            IconButton(
+              icon: cachedChatsProvider.isChatSaved(chatDocument)
+                  ? Icon(Icons.bookmark)
+                  : Icon(Icons.bookmark_border),
+              onPressed: () {
+                if (!cachedChatsProvider.isChatSaved(chatDocument)) {
+                  chatScreenProvider.joinChat(
+                      widget.chatDocument, context, cachedChatsProvider);
+                } else {
+                  chatScreenProvider.leaveChat(
+                      widget.chatDocument, context, cachedChatsProvider);
+                }
+              },
+            )
+          ]
+        : null;
   }
 
   @override
   Widget build(BuildContext context) {
     ChatScreenManager chatScreenProvider =
         Provider.of<ChatScreenManager>(context);
-
+    CachedChats cachedChatsProvider = Provider.of<CachedChats>(context);
     return Scaffold(
         appBar: new AppBar(
           title: new GestureDetector(
@@ -64,7 +69,8 @@ class ChatScreenState extends State<ChatScreen> {
             child: new Text(widget.chatDocument.name),
           ),
           actions: AuthState.currentUser != null
-              ? _buildAppBarActions(widget.chatDocument, chatScreenProvider)
+              ? _buildAppBarActions(
+                  widget.chatDocument, chatScreenProvider, cachedChatsProvider)
               : null,
         ),
         body: new Container(
@@ -129,7 +135,8 @@ class _TextComposerState extends State<TextComposer> {
     return new CupertinoButton(
       child: new Text("Send"),
       onPressed: messagingProvider.isComposingMessage
-          ? () => messagingProvider.textMessageSubmitted(messagingProvider.textEditingController.text)
+          ? () => messagingProvider.textMessageSubmitted(
+              messagingProvider.textEditingController.text)
           : null,
     );
   }
@@ -138,17 +145,22 @@ class _TextComposerState extends State<TextComposer> {
     return new IconButton(
       icon: new Icon(Icons.send),
       onPressed: messagingProvider.isComposingMessage
-          ? () => messagingProvider.textMessageSubmitted(messagingProvider.textEditingController.text)
+          ? () => messagingProvider.textMessageSubmitted(
+              messagingProvider.textEditingController.text)
           : null,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    AnonymitySwitch anonimitySwitchProvider = Provider.of<AnonymitySwitch>(context);
+    AnonymitySwitch anonimitySwitchProvider =
+        Provider.of<AnonymitySwitch>(context);
 
     return ChangeNotifierProvider(
-        builder: (context) => MessagingManager(chatDocument: widget.chatDocument, context: context, anonimitySwitchProvider: anonimitySwitchProvider),
+        builder: (context) => MessagingManager(
+            chatDocument: widget.chatDocument,
+            context: context,
+            anonimitySwitchProvider: anonimitySwitchProvider),
         child: Consumer<MessagingManager>(
           builder: (context, messagingProvider, child) {
             return new IconTheme(

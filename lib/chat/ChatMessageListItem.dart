@@ -50,13 +50,11 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
           });
         }
       } else {
-
         if (mounted) {
           setState(() {
-          isSenderBlocked = false;
-        });
+            isSenderBlocked = false;
+          });
         }
-
       }
     });
   }
@@ -96,59 +94,60 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
   }
 
   _buildMessage(context) {
-    // onDoubleTap: () {
-    //   // TODO: DRY
-    //   if (widget.messageSnapshot['imageURL'] == null) {
-    //     _getMessageHasSubchat(widget.messageSnapshot).then((hasSubchat) {
-    //       if (hasSubchat) {
-    //         _openSubchat(widget.messageSnapshot, context);
-    //       } else {
-    //         if (AuthState.currentUser != null) {
-    //           final subchatName = widget.messageSnapshot['text'];
-    //           _createSubchat(subchatName, widget.messageSnapshot, context);
-    //         } else {
-    //           Navigator.of(context)
-    //               .push(new MaterialPageRoute(builder: (context) {
-    //             return new LoginPage(redirectBack: true);
-    //           }));
-    //         }
-    //       }
-    //     });
-    //   }
-    // },
-    // onLongPress: () {
-    //   if (AuthState.currentUser != null) {
-    //     if (widget.messageSnapshot['imageURL'] == null) {
-    //       _getMessageHasSubchat(widget.messageSnapshot).then((hasSubchat) {
-    //         if (hasSubchat) {
-    //           _openSubchat(widget.messageSnapshot, context);
-    //         } else {
-    //           if (AuthState.currentUser != null) {
-    //             final subchatName = widget.messageSnapshot['text'];
-    //             _createSubchat(subchatName, widget.messageSnapshot, context);
-    //           } else {
-    //             Navigator.of(context)
-    //                 .push(new MaterialPageRoute(builder: (context) {
-    //               return new LoginPage(redirectBack: true);
-    //             }));
-    //           }
-    //         }
-    //       });
-    //     }
-    //   }
-    // },
-
-    return Row(
-        children: !_isSentMessage(widget.messageSnapshot['sender']['id'])
-            ? getSentMessageLayout()
-            : getReceivedMessageLayout());
+    return GestureDetector(
+      child: Row(
+          children: !_isSentMessage(widget.messageSnapshot['sender']['id'])
+              ? getSentMessageLayout()
+              : getReceivedMessageLayout()),
+      onDoubleTap: () {
+        // TODO: DRY
+        if (widget.messageSnapshot['imageURL'] == null) {
+          _getMessageHasSubchat(widget.messageSnapshot).then((hasSubchat) {
+            if (hasSubchat) {
+              _openSubchat(widget.messageSnapshot, context);
+            } else {
+              if (AuthState.currentUser != null) {
+                final subchatName = widget.messageSnapshot['text'];
+                _createSubchat(subchatName, widget.messageSnapshot, context);
+              } else {
+                Navigator.of(context)
+                    .push(new MaterialPageRoute(builder: (context) {
+                  return new LoginPage(redirectBack: true);
+                }));
+              }
+            }
+          });
+        }
+      },
+      onLongPress: () {
+        if (AuthState.currentUser != null) {
+          if (widget.messageSnapshot['imageURL'] == null) {
+            _getMessageHasSubchat(widget.messageSnapshot).then((hasSubchat) {
+              if (hasSubchat) {
+                _openSubchat(widget.messageSnapshot, context);
+              } else {
+                if (AuthState.currentUser != null) {
+                  final subchatName = widget.messageSnapshot['text'];
+                  _createSubchat(subchatName, widget.messageSnapshot, context);
+                } else {
+                  Navigator.of(context)
+                      .push(new MaterialPageRoute(builder: (context) {
+                    return new LoginPage(redirectBack: true);
+                  }));
+                }
+              }
+            });
+          }
+        }
+      },
+    );
   }
 
   _createSubchat(
       String subchatName, DocumentSnapshot messageSnapshot, context) async {
     Scaffold.of(context).showSnackBar(SnackBar(
       content: Text("Creating a subchat..."),
-      duration: Duration(milliseconds: 500),
+      duration: Duration(seconds: 1),
     ));
 
     final DocumentReference chatDocumentReference =
@@ -427,10 +426,15 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
                     child: widget.messageSnapshot['imageURL'] != null
                         ? null
                         : widget.messageSnapshot['repliesCount'] > 0
-                            ? new Text(
-                                repliesCountLabel,
-                                style: TextStyle(
-                                    color: Colors.grey, fontSize: 10.0),
+                            ? GestureDetector(
+                                child: new Text(
+                                  repliesCountLabel,
+                                  style: TextStyle(
+                                      color: Colors.grey, fontSize: 10.0),
+                                ),
+                                onTap: () {
+                                  _openSubchat(widget.messageSnapshot, context);
+                                },
                               )
                             : null)
               ].where((c) => c != null).toList(),
@@ -474,12 +478,18 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
             //         color: Colors.black,
             //         fontWeight: FontWeight.bold)),
             _buildTextMessageContent(),
+
             widget.messageSnapshot['imageURL'] != null
                 ? null
                 : widget.messageSnapshot['repliesCount'] > 0
-                    ? new Text(
-                        repliesCountLabel,
-                        style: TextStyle(color: Colors.grey, fontSize: 10.0),
+                    ? GestureDetector(
+                        child: new Text(
+                          repliesCountLabel,
+                          style: TextStyle(color: Colors.grey, fontSize: 10.0),
+                        ),
+                        onTap: () {
+                          _openSubchat(widget.messageSnapshot, context);
+                        },
                       )
                     : null
           ].where((c) => c != null).toList(),

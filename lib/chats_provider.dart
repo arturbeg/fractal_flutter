@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'package:async/async.dart';
 import 'package:fractal/auth_state.dart';
+import 'package:fractal/model/models.dart';
 
 /*
 https://stackoverflow.com/questions/53459669/so-what-is-the-simplest-approach-for-caching-in-flutter
@@ -10,13 +11,10 @@ https://stackoverflow.com/questions/53459669/so-what-is-the-simplest-approach-fo
 
 // TODO: later name CachedChatsAndFirebase
 class CachedChats with ChangeNotifier {
-  final AsyncMemoizer _memoizer = AsyncMemoizer();
 
-  QuerySnapshot _cachedSavedChats;
+  List<ChatModel> _cachedSavedChats;
   QuerySnapshot _cachedExploredChats;
   Future<QuerySnapshot> _exploredChatsFuture;
-  // DateTime _lastFetchTime = DateTime.fromMillisecondsSinceEpoch(0);
-  // Duration _cacheValidDuration = Duration(minutes: 30);
 
   CachedChats()
       :
@@ -28,25 +26,57 @@ class CachedChats with ChangeNotifier {
             .limit(30)
             .getDocuments();
 
-  QuerySnapshot getCachedSavedChats() {
-    // bool shouldRefreshCache = (null == _cachedSavedChats || _lastFetchTime.isBefore(DateTime.now().subtract(_cacheValidDuration)));
+  List<ChatModel> getCachedSavedChats() {
+    if(_cachedSavedChats==null) {
+      _fetchSavedChatsForCache();
+    }
     return _cachedSavedChats;
+  }
+
+  bool isChatSaved(ChatModel chatDocument) {
+    if(_cachedSavedChats==null) {
+      _fetchSavedChatsForCache();
+      return null;
+    }
+    return _cachedSavedChats.contains(chatDocument);
   }
   
   get cachedExploredChats => _cachedExploredChats;
   get exploredChatsFuture => _exploredChatsFuture;
 
-  fetchSavedChatsForCache() async {
+  void locallyUpdateCachedSavedChats(ChatModel chatDocument, bool isJoining) {
+    
+    if(isJoining && !_cachedSavedChats.contains(chatDocument)) {
+      _cachedSavedChats.add(chatDocument);
+    }
+
+    if(!isJoining && _cachedSavedChats.contains(chatDocument)) {
+      _cachedSavedChats.remove(chatDocument);
+    }
+
+    notifyListeners();
+  }
+  
+  _fetchSavedChatsForCache() async {
     QuerySnapshot savedChats = await Firestore.instance
         .collection('joinedChats')
         .where('user.id', isEqualTo: AuthState.currentUser.documentID)
         .orderBy('lastMessageTimestamp', descending: true)
         .limit(80)
         .getDocuments();
-    updatedCachedSavedChats(savedChats);
+    
+    List<ChatModel> savedChatsChatModel = savedChats.documents.map(
+      (documentSnapshot) {
+        var chatDocument = ChatModel();
+        chatDocument.setChatModelFromJoinedChatDocumentSnapshot(documentSnapshot);
+        return chatDocument;
+      }
+    ).toList();
+
+    updatedCachedSavedChats(savedChatsChatModel);
   }
 
-  void updatedCachedSavedChats(QuerySnapshot updatedSavedChats) {
+  void updatedCachedSavedChats(List<ChatModel> updatedSavedChats) {
     _cachedSavedChats = updatedSavedChats;
     notifyListeners();
   }

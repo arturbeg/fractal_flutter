@@ -33,8 +33,8 @@ class _DetailPageState extends State<DetailPage>
     // TODO: implement initState
     super.initState();
     _tabController = new TabController(vsync: this, initialIndex: 1, length: 2);
-   // print("THE URL IS");
-   // print(widget.chatDocument.url == "");
+    // print("THE URL IS");
+    // print(widget.chatDocument.url == "");
   }
 
   @override
@@ -42,20 +42,10 @@ class _DetailPageState extends State<DetailPage>
     return new Scaffold(
         appBar: new AppBar(
           title: new Text(widget.chatDocument.name),
-
           bottom: new TabBar(tabs: <Widget>[
             new Tab(text: "Subchats"),
             new Tab(text: "Info"),
           ], controller: _tabController),
-          // actions: <Widget>[
-          //   IconButton(
-          //     icon: Icon(Icons.share),
-          //     onPressed: () {
-          //       shareNotice();
-          //     },
-          //     color: Colors.white,
-          //   )
-          // ],
         ),
         body: new TabBarView(
           controller: _tabController,
@@ -96,17 +86,25 @@ class _DetailPageState extends State<DetailPage>
         if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
         switch (snapshot.connectionState) {
           case ConnectionState.waiting:
-            return new Text(''); // Not displaying Loading...
+            return new Center(
+              child: CircularProgressIndicator(),
+            ); // Not displaying Loading...
           default:
-            return new ListView.builder(
-              itemCount: snapshot.data.documents.length,
-              itemBuilder: (BuildContext context, int index) {
-                var chatDocument = ChatModel();
-                chatDocument.setChatModelFromDocumentSnapshot(
-                    snapshot.data.documents[index]);
-                return new ChatItem(chatDocument: chatDocument);
-              },
-            );
+            if (snapshot.data.documents.length == 0) {
+              return Center(
+                child: Text("No subchats yet"),
+              );
+            } else {
+              return new ListView.builder(
+                itemCount: snapshot.data.documents.length,
+                itemBuilder: (BuildContext context, int index) {
+                  var chatDocument = ChatModel();
+                  chatDocument.setChatModelFromDocumentSnapshot(
+                      snapshot.data.documents[index]);
+                  return new ChatItem(chatDocument: chatDocument);
+                },
+              );
+            }
         }
       },
     );
@@ -128,8 +126,8 @@ class _DetailPageState extends State<DetailPage>
         );
   }
 
-  Widget _getBody(tittle, description, link, context) { 
-   // print(widget.chatDocument.isSubchat);  
+  Widget _getBody(tittle, description, link, context) {
+    // print(widget.chatDocument.isSubchat);
     return new Container(
       margin: new EdgeInsets.all(15.0),
       child: new Column(
@@ -240,4 +238,3 @@ class _DetailPageState extends State<DetailPage>
     }
   }
 }
-

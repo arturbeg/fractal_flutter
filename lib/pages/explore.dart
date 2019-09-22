@@ -21,7 +21,7 @@ class explore extends StatelessWidget {
       ));
     } else {
       // TODO: placeholder rectange like on Youtube or instagram
-      return Text("11");
+      return Text("Nothing to display");
     }
   }
 
@@ -36,8 +36,8 @@ class explore extends StatelessWidget {
       ),
       body: RefreshIndicator(
         onRefresh: chatsProvider.handleRefresh,
-        color: Colors.white,
-        backgroundColor: Colors.black,
+        color: Colors.blue,
+        backgroundColor: Colors.white,
         child: FutureBuilder(
             initialData: chatsProvider.cachedExploredChats,
             future: chatsProvider.exploredChatsFuture,
