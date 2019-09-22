@@ -64,7 +64,7 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
   _buildMessage(BuildContext context, BlockedUserManager blockedUserProvider) {
     return GestureDetector(
       child: Row(
-          children: !_isSentMessage(widget.messageSnapshot['sender']['id'])
+          children: _isSentMessage(widget.messageSnapshot['sender']['id'])
               ? getSentMessageLayout(blockedUserProvider)
               : getReceivedMessageLayout(blockedUserProvider)),
       onDoubleTap: () {
@@ -184,7 +184,7 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
     BlockedUserManager blockedUserProvider =
         Provider.of<BlockedUserManager>(context);
 
-    return new Slidable(
+    return !_isSentMessage(widget.messageSnapshot['sender']['id']) ? new Slidable(
         actionPane: SlidableDrawerActionPane(),
         actionExtentRatio: 0.25,
         actions: <Widget>[_buildBlockUserAction(blockedUserProvider)],
@@ -215,7 +215,7 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
                 }
               }),
         ],
-        child: _buildMessage(context, blockedUserProvider));
+        child: _buildMessage(context, blockedUserProvider)) : _buildMessage(context, blockedUserProvider);
   }
 
   bool _isSentMessage(senderID) {
