@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatModel {
@@ -33,7 +35,9 @@ class ChatModel {
     owner = ChatOwnerModel(
         facebookID: joinedChatDocument['owner']['facebookID'],
         id: joinedChatDocument['owner']['id'],
-        name: joinedChatDocument['owner']['name']);
+        name: joinedChatDocument['owner']['name'],
+        isGoogle: joinedChatDocument['owner']['isGoogle'],
+        googleProfileURL: joinedChatDocument['owner']['googleProfileURL']);
     timestamp = joinedChatDocument['chatTimestamp'].toDate();
     
     lastMessageTimestamp = joinedChatDocument['lastMessageTimestamp'].toDate();
@@ -47,7 +51,9 @@ class ChatModel {
     user = ChatOwnerModel(
         facebookID: joinedChatDocument['user']['facebookID'],
         id: joinedChatDocument['user']['id'],
-        name: joinedChatDocument['user']['name']);
+        name: joinedChatDocument['user']['name'],
+        isGoogle: joinedChatDocument['user']['isGoogle'],
+        googleProfileURL: joinedChatDocument['user']['googleProfileURL']);
 
     parentMessageId = joinedChatDocument['parentMessageId'];
 
@@ -79,7 +85,9 @@ class ChatModel {
     owner = ChatOwnerModel(
         facebookID: chatDocument['owner']['facebookID'],
         id: chatDocument['owner']['id'],
-        name: chatDocument['owner']['name']);
+        name: chatDocument['owner']['name'],
+        isGoogle: chatDocument['owner']['isGoogle'],
+        googleProfileURL: chatDocument['owner']['googleProfileURL']);
 
     timestamp = chatDocument['timestamp'].toDate();
 
@@ -124,7 +132,9 @@ class ChatModel {
     owner = ChatOwnerModel(
         facebookID: chatAlgoliaDocument['owner']['facebookID'],
         id: chatAlgoliaDocument['owner']['id'],
-        name: chatAlgoliaDocument['owner']['name']);
+        name: chatAlgoliaDocument['owner']['name'],
+        isGoogle: chatAlgoliaDocument['owner']['isGoogle'],
+        googleProfileURL: chatAlgoliaDocument['owner']['googleProfileURL']);
 
     parentChat = ParentChatModel(
       avatarURL: chatAlgoliaDocument['parentChat']['avatarURL'],
@@ -185,11 +195,13 @@ class ChatOwnerModel {
   final String facebookID;
   final String id;
   final String name;
-
-  ChatOwnerModel({this.facebookID, this.id, this.name});
+  final bool isGoogle;
+  final String googleProfileURL;
+  
+  ChatOwnerModel({this.facebookID, this.id, this.name, this.isGoogle, this.googleProfileURL});
 
   getChatOwnerModelMap() {
-    final map = {'facebookID': facebookID, 'id': id, 'name': name};
+    final map = {'facebookID': facebookID, 'id': id, 'name': name, 'isGoogle': isGoogle, 'googleProfileURL': googleProfileURL};
 
     return map;
   }

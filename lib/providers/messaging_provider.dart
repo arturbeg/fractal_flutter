@@ -2,7 +2,6 @@
 // Notify the listeners
 
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/widgets.dart';
@@ -100,6 +99,8 @@ class MessagingManager extends ChangeNotifier {
         'sender': {
           // TODO: if anonymous don't keep other data about the sender
           'facebookID': AuthState.currentUser['facebookID'],
+          'isGoogle': AuthState.currentUser['isGoogle'],
+          'googleProfileURL': AuthState.currentUser['googleProfileURL'],
           'id': AuthState.currentUser.documentID,
           'name': AuthState.currentUser['name'],
           'isAnonymous': anonimitySwitchProvider.isAnonymous,

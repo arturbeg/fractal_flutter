@@ -57,7 +57,9 @@ class ChatScreenManager with ChangeNotifier {
         "user": {
           "id": AuthState.currentUser.documentID,
           "facebookID": AuthState.currentUser.data['facebookID'],
-          "name": AuthState.currentUser.data['name']
+          "name": AuthState.currentUser.data['name'],
+          'isGoogle': AuthState.currentUser['isGoogle'],
+          'googleProfileURL': AuthState.currentUser['googleProfileURL'],
         },
         "parentMessageId": chatDocument.parentMessageId,
         "parentChat": chatDocument.parentChat.getParentChatModelMap(),

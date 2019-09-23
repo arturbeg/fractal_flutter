@@ -134,7 +134,10 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
       "owner": {
         'id': AuthState.currentUser.documentID,
         'name': AuthState.currentUser['name'],
-        'facebookID': AuthState.currentUser['facebookID']
+        'facebookID': AuthState.currentUser['facebookID'],
+        'isGoogle': AuthState.currentUser['isGoogle'],
+        'googleProfileURL': AuthState.currentUser['googleProfileURL'],
+        // TODO: add google stuff to the owner, sender...
       },
       "timestamp": FieldValue.serverTimestamp(),
       "parentMessageId": messageSnapshot.documentID,
@@ -299,6 +302,8 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
   }
 
   _buildSenderProfilePhoto() {
+    bool isGoogle = (AuthState.currentUser.data.containsKey('isGoogle') &&
+        AuthState.currentUser.data['isGoogle']);
     bool isAnonymous =
         widget.messageSnapshot.data['sender']['isAnonymous'] != null &&
             widget.messageSnapshot.data['sender']['isAnonymous'];
@@ -311,8 +316,9 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
           height: 30.0,
           margin: const EdgeInsets.only(right: 8.0),
           child: CachedNetworkImage(
-            imageUrl:
-                'https://graph.facebook.com/${widget.messageSnapshot['sender']['facebookID']}/picture?height=30',
+            imageUrl: isGoogle
+                  ? AuthState.currentUser.data['googleProfileURL']
+                  : 'https://graph.facebook.com/${widget.messageSnapshot['sender']['facebookID']}/picture?height=30',
             imageBuilder: (context, imageProvider) => new CircleAvatar(
               backgroundImage: isAnonymous
                   ? AssetImage('assets/default-avatar.png')

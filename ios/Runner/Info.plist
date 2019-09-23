@@ -26,6 +26,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>fb1280227805475949</string>
+				<string>com.googleusercontent.apps.460574093497-79la2er1vjol9qbhl0vr7usbd3qpijpq</string>
 			</array>
 		</dict>
 	</array>
@@ -73,4 +74,8 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 </dict>
+
+
 </plist>
+
+

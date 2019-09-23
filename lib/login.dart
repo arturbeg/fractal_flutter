@@ -1,6 +1,7 @@
 import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fractal/providers/anonimity_switch_provider.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import './auth_state.dart';
 import './model/models.dart';
@@ -25,7 +26,14 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   String facebookProfilePicture;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  var facebookLogin = FacebookLogin();
+  FacebookLogin facebookLogin = FacebookLogin();
+
+  GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: [
+      'email',
+    ],
+  );
+
   bool showCircularProgress = false;
   DocumentSnapshot userDocument;
   var isLoggedIn = AuthState.currentUser != null;
@@ -76,12 +84,6 @@ class _LoginPageState extends State<LoginPage> {
 
   void onLoginStatusChanged(bool isLoggedIn,
       {userDocument, String profileUrl}) async {
-    // setState(() {
-    //   this.userDocument = userDocument;
-    //   this.showCircularProgress = false;
-    //   this.isLoggedIn = isLoggedIn;
-    // });
-
     if (isLoggedIn) {
       AuthState.instance.setUser(userDocument, profileUrl);
       SharedPreferences prefs;
@@ -93,14 +95,79 @@ class _LoginPageState extends State<LoginPage> {
 
     if (widget.redirectBack) {
       Navigator.of(context).pop();
-      // make sure setState is not relevant in here
     } else {
-      // print('Not a redirect back');
       setState(() {
         this.userDocument = userDocument;
         this.showCircularProgress = false;
         this.isLoggedIn = isLoggedIn;
       });
+    }
+  }
+
+  void _kickStartGoogleUser(
+      FirebaseUser user, GoogleSignInAccount googleUser) async {
+    if (user != null) {
+      final QuerySnapshot result = await Firestore.instance
+          .collection('users')
+          .where('uid', isEqualTo: user.uid)
+          .getDocuments();
+
+      final List<DocumentSnapshot> documents = result.documents;
+
+      if (documents.length == 0) {
+        // Update data to server if new user
+        Firestore.instance.collection('users').document(user.uid).setData({
+          'name': user.displayName,
+          'about': "",
+          "email": user.email,
+          "lastSeen": Timestamp(user.metadata.lastSignInTimestamp, 0),
+          "googleProfileURL": googleUser.photoUrl,
+          "isGoogle": true,
+          "timestamp": Timestamp(user.metadata.creationTimestamp, 0),
+          'uid': user.uid,
+          "username": ""
+        });
+
+        var userDocumentNew = await Firestore.instance
+            .collection('users')
+            .document(user.uid)
+            .get();
+
+        onLoginStatusChanged(true,
+            userDocument: userDocumentNew, profileUrl: "");
+      } else {
+        var userDocumentNew = await Firestore.instance
+            .collection('users')
+            .document(user.uid)
+            .get();
+
+        onLoginStatusChanged(true,
+            userDocument: userDocumentNew, profileUrl: "");
+      }
+    }
+  }
+
+  // TODO: fix, stopped here
+  void initiateGoogleLogin() async {
+    setState(() {
+      this.showCircularProgress = true;
+    });
+    try {
+      final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.getCredential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      FirebaseUser user = await _auth.signInWithCredential(credential);
+
+      _kickStartGoogleUser(user, googleUser);
+    } catch (error) {
+      onLoginStatusChanged(false);
     }
   }
 
@@ -185,33 +252,48 @@ class _LoginPageState extends State<LoginPage> {
     if (showCircularProgress) {
       return Center(child: CircularProgressIndicator());
     } else {
-      // TODO: make the button more appealing
       return Center(
-        child: FacebookSignInButton(onPressed: () {
-          initiateFacebookLogin();
-        }),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            FacebookSignInButton(onPressed: () {
+              initiateFacebookLogin();
+            }),
+            GoogleSignInButton(
+              onPressed: () {
+                initiateGoogleLogin();
+              },
+            )
+          ],
+        ),
       );
     }
   }
 
   _displayUserData() {
+    bool isGoogle = (AuthState.currentUser.data.containsKey('isGoogle') &&
+        AuthState.currentUser.data['isGoogle']);
+
     AnonymitySwitch anonimityProvider = Provider.of<AnonymitySwitch>(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Container(
-            
             height: 200, // media query this
             width: 200,
             child: CachedNetworkImage(
-              imageUrl:
-                  'https://graph.facebook.com/${AuthState.currentUser['facebookID']}/picture?height=200',
+              imageUrl: isGoogle
+                  ? AuthState.currentUser.data['googleProfileURL']
+                  : 'https://graph.facebook.com/${AuthState.currentUser['facebookID']}/picture?height=200',
               imageBuilder: (context, imageProvider) => Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   image: DecorationImage(
-                    image: anonimityProvider.isAnonymous ? AssetImage('assets/default-avatar.png') : imageProvider,
+                    image: anonimityProvider.isAnonymous
+                        ? AssetImage('assets/default-avatar.png')
+                        : imageProvider,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -223,22 +305,23 @@ class _LoginPageState extends State<LoginPage> {
           ),
           SizedBox(height: 28.0),
           Text(
-            !anonimityProvider.isAnonymous ?AuthState.currentUser['name'] : anonimityProvider.anonymousName,
+            !anonimityProvider.isAnonymous
+                ? AuthState.currentUser['name']
+                : anonimityProvider.anonymousName,
             style: TextStyle(
               fontSize: 20.0,
             ),
           ),
           new RaisedButton(
             onPressed: anonimityProvider.updateAnonymity,
-            textColor: !anonimityProvider.isAnonymous ?Colors.white : Colors.black,
+            textColor:
+                !anonimityProvider.isAnonymous ? Colors.white : Colors.black,
             color: !anonimityProvider.isAnonymous
                 ? Color.fromRGBO(0, 132, 255, 0.7)
                 : Color.fromRGBO(230, 230, 230, 1.0),
             padding: const EdgeInsets.all(8.0),
             child: new Text(
-              anonimityProvider.isAnonymous
-                  ? "Anonymous"
-                  : "Public",
+              anonimityProvider.isAnonymous ? "Anonymous" : "Public",
             ),
           ),
         ],
@@ -248,6 +331,7 @@ class _LoginPageState extends State<LoginPage> {
 
   _logout() async {
     await facebookLogin.logOut();
+    await _googleSignIn.signOut();
 
     SharedPreferences prefs;
     prefs = await SharedPreferences.getInstance();
