@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fractal/chat_screen_provider.dart';
 import 'package:fractal/chats_provider.dart';
 import 'package:fractal/providers/messaging_provider.dart';
+import 'package:fractal/providers/notifications_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
@@ -30,7 +31,7 @@ class ChatScreen extends StatefulWidget {
 
 class ChatScreenState extends State<ChatScreen> {
   _buildAppBarActions(ChatModel chatDocument,
-      ChatScreenManager chatScreenProvider, CachedChats cachedChatsProvider) {
+      ChatScreenManager chatScreenProvider, CachedChats cachedChatsProvider, NotificationsManager noticationsProvider) {
     return cachedChatsProvider.isChatSaved(chatDocument) != null
         ? <Widget>[
             IconButton(
@@ -40,10 +41,10 @@ class ChatScreenState extends State<ChatScreen> {
               onPressed: () {
                 if (!cachedChatsProvider.isChatSaved(chatDocument)) {
                   chatScreenProvider.joinChat(
-                      widget.chatDocument, context, cachedChatsProvider);
+                      widget.chatDocument, context, cachedChatsProvider, noticationsProvider);
                 } else {
                   chatScreenProvider.leaveChat(
-                      widget.chatDocument, context, cachedChatsProvider);
+                      widget.chatDocument, context, cachedChatsProvider, noticationsProvider);
                 }
               },
             )
@@ -56,6 +57,7 @@ class ChatScreenState extends State<ChatScreen> {
     ChatScreenManager chatScreenProvider =
         Provider.of<ChatScreenManager>(context);
     CachedChats cachedChatsProvider = Provider.of<CachedChats>(context);
+    NotificationsManager notificationsProvider = Provider.of<NotificationsManager>(context);
     return Scaffold(
         appBar: new AppBar(
           title: new GestureDetector(
@@ -70,7 +72,7 @@ class ChatScreenState extends State<ChatScreen> {
           ),
           actions: AuthState.currentUser != null
               ? _buildAppBarActions(
-                  widget.chatDocument, chatScreenProvider, cachedChatsProvider)
+                  widget.chatDocument, chatScreenProvider, cachedChatsProvider, notificationsProvider)
               : null,
         ),
         body: new Container(

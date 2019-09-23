@@ -1,3 +1,7 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,6 +10,7 @@ import 'package:fractal/chat_screen_provider.dart';
 import 'package:fractal/providers/anonimity_switch_provider.dart';
 import 'package:fractal/providers/blocked_user_provider.dart';
 import 'package:fractal/providers/messaging_provider.dart';
+import 'package:fractal/providers/notifications_provider.dart';
 import './WhatsAppHome.dart';
 import './auth_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -40,6 +45,18 @@ class _LoginPageState extends State<LoginPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final Firestore _db = Firestore.instance;
   Widget _appBarTitle = new Text('Fractal');
+  final FirebaseMessaging _fcm = FirebaseMessaging();
+  StreamSubscription iosSubscription;
+
+  void _requestNotifications() {
+    if (Platform.isIOS) {
+      iosSubscription = _fcm.onIosSettingsRegistered.listen((data) {
+        //TODO: save the token  OR subscribe to a topic here
+      });
+
+      _fcm.requestNotificationPermissions(IosNotificationSettings());
+    }
+  }
 
   Future<Null> _function() async {
     // TODO: configure to store custom user data
@@ -65,10 +82,28 @@ class _LoginPageState extends State<LoginPage> {
     } else {}
   }
 
+  // TODO: move FCM login into a BLoC or a provider
+  void _fcmSetup() {
+    _fcm.configure(
+      onMessage: (Map<String, dynamic> message) async {
+        print("onMessage: $message");
+      },
+      onLaunch: (Map<String, dynamic> message) async {
+        print("onLaunch: $message");
+        // TODO optional
+      },
+      onResume: (Map<String, dynamic> message) async {
+        print("onResume: $message");
+        // TODO optional
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     this._function();
+    this._requestNotifications();
   }
 
   @override
@@ -91,6 +126,8 @@ class _LoginPageState extends State<LoginPage> {
               builder: (_) => AnonymitySwitch()),
           ChangeNotifierProvider<BlockedUserManager>(
               builder: (_) => BlockedUserManager()),
+          ChangeNotifierProvider<NotificationsManager>(
+              builder: (_) => NotificationsManager(fcm: _fcm)),
         ],
         child: MaterialApp(
           // TODO: make sure works, add more

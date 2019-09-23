@@ -12,7 +12,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 
 // TODO: refactor to make more DRY
-
 class ChatMessageListItem extends StatefulWidget {
   final DocumentSnapshot messageSnapshot;
   final bool isPreviousMessageByTheSameSender;
@@ -316,7 +315,7 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
           height: 30.0,
           margin: const EdgeInsets.only(right: 8.0),
           child: CachedNetworkImage(
-            imageUrl: isGoogle
+            imageUrl: !isGoogle
                   ? AuthState.currentUser.data['googleProfileURL']
                   : 'https://graph.facebook.com/${widget.messageSnapshot['sender']['facebookID']}/picture?height=30',
             imageBuilder: (context, imageProvider) => new CircleAvatar(

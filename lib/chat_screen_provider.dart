@@ -8,12 +8,13 @@ import 'package:fractal/auth_state.dart';
 import 'package:fractal/chats_provider.dart';
 import 'package:fractal/model/models.dart';
 import 'package:fractal/login.dart';
+import 'package:fractal/providers/notifications_provider.dart';
 
 // TODO: later migrate all the joined stuff into MOOR
 class ChatScreenManager with ChangeNotifier {
 
   void leaveChat(ChatModel chatDocument, BuildContext context,
-      CachedChats cachedChatsProvider) async {
+      CachedChats cachedChatsProvider, NotificationsManager notificationsProvider) async {
     if (cachedChatsProvider.getCachedSavedChats() != null) {
       cachedChatsProvider.locallyUpdateCachedSavedChats(chatDocument, false);
     }
@@ -27,6 +28,7 @@ class ChatScreenManager with ChangeNotifier {
           .then((snapshot) {
         for (DocumentSnapshot ds in snapshot.documents) {
           ds.reference.delete();
+          notificationsProvider.fcm.unsubscribeFromTopic(chatDocument.id);
         }
       });
     } else {
@@ -37,7 +39,7 @@ class ChatScreenManager with ChangeNotifier {
   }
 
   void joinChat(ChatModel chatDocument, BuildContext context,
-      CachedChats cachedChatsProvider) {
+      CachedChats cachedChatsProvider, NotificationsManager notificationsProvider) {
     // TODO: update saved messages cache
 
     if (cachedChatsProvider.getCachedSavedChats() != null) {
@@ -47,6 +49,8 @@ class ChatScreenManager with ChangeNotifier {
     if (AuthState.currentUser != null) {
       final reference = Firestore.instance.collection('joinedChats');
       reference.document().setData({
+        // TODO: update ChatModel
+        "notificationsON": true,
         "about": chatDocument.about,
         "avatarURL": chatDocument.avatarURL,
         "chatId": chatDocument.id,
@@ -78,6 +82,8 @@ class ChatScreenManager with ChangeNotifier {
           'rank': chatDocument.reddit.rank
         },
       });
+      // NOTIFICATIONS, notifylisteners()?
+      notificationsProvider.fcm.subscribeToTopic(chatDocument.id);
     } else {
       Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
         return new LoginPage(redirectBack: true);
