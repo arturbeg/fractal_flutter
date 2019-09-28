@@ -49,7 +49,7 @@ class _LoginPageState extends State<LoginPage> {
   FirebaseMessaging fcm = FirebaseMessaging();
   final navigatorKey = GlobalKey<NavigatorState>();
   
-  _openChatAfterNotification(Map<String, dynamic> message) async {
+  _openChatAfterNotification(Map<String, dynamic> message, bool onResume) async {
     // joinedChatId
     String joinedChatId = message['joinedChatId'];
     String notificationTitle = message['aps']['alert']['title'];
@@ -115,11 +115,11 @@ class _LoginPageState extends State<LoginPage> {
       onLaunch: (Map<String, dynamic> message) async {
         print("onLaunch: $message");
         // TODO optional
-        _openChatAfterNotification(message);
+        _openChatAfterNotification(message, false);
       },
       onResume: (Map<String, dynamic> message) async {
         print("onResume: $message");
-        _openChatAfterNotification(message);
+        _openChatAfterNotification(message, true);
         // TODO optional
       },
     );

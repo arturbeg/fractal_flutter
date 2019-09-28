@@ -11,6 +11,11 @@ class BlockedUserManager extends ChangeNotifier {
   List<dynamic> _blockedUserIds = List<dynamic>();
   get blockedUserIds => _blockedUserIds;
 
+  void clearBlockedUserIds() {
+    _blockedUserIds = List<dynamic>();
+    notifyListeners();
+  }
+  
   void kickstartBlockedUserIds() {
     // print('Kickstarting');
     if (!AuthState.currentUser.data.containsKey('blockedUsers') &&

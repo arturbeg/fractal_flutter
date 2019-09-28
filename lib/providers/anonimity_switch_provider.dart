@@ -22,7 +22,13 @@ class AnonymitySwitch extends ChangeNotifier {
     String numericString = randomNumeric(4).toString();
     return "Anonymous ${numericString}";
   }
-  
+
+  void resetAnonimitySwitch() {
+    _isAnonymous = initAnonymitySwitch();
+    _anonymousName = generateAnonymousName();
+    notifyListeners();
+  }
+
   static bool initAnonymitySwitch() {
     if(AuthState.currentUser!=null && AuthState.currentUser.data['isAnonymous'] != null) {
       return AuthState.currentUser.data['isAnonymous'];

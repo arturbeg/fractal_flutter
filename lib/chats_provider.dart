@@ -15,6 +15,12 @@ class CachedChats with ChangeNotifier {
   List<ChatModel> _cachedSavedChats;
   List<ChatModel> _cachedExploredChats;
 
+  void clearCache() {
+    // for now just saved chats
+    _cachedSavedChats = null;
+    notifyListeners();
+  }
+
   List<ChatModel> getCachedSavedChats() {
     if(_cachedSavedChats==null) {
       _fetchSavedChatsForCache();

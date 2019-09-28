@@ -1,6 +1,8 @@
 import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fractal/chats_provider.dart';
 import 'package:fractal/providers/anonimity_switch_provider.dart';
+import 'package:fractal/providers/blocked_user_provider.dart';
 import 'package:fractal/providers/notifications_provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
@@ -335,12 +337,27 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  
+  _clearCache() {
+    BlockedUserManager blockedUsersProvider = Provider.of<BlockedUserManager>(context);
+    CachedChats cachedChatsProvider = Provider.of<CachedChats>(context);
+    AnonymitySwitch anonymitySwitchProvider = Provider.of<AnonymitySwitch>(context);
+    
+    blockedUsersProvider.clearBlockedUserIds();
+    cachedChatsProvider.clearCache();
+    anonymitySwitchProvider.resetAnonimitySwitch();
+  }
+
   _logout() async {
     NotificationsManager notificationsProvider = Provider.of<NotificationsManager>(context);
+    
+
     // TODO: check user type to do the right logout
     await notificationsProvider.deleteDeviceToken();
     await facebookLogin.logOut();
     await _googleSignIn.signOut();
+    // empty user related cache
+    _clearCache();
 
     SharedPreferences prefs;
     prefs = await SharedPreferences.getInstance();
