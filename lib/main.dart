@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fractal/chat/chatscreen.dart';
 import 'package:fractal/chat_screen_provider.dart';
+import 'package:fractal/model/models.dart';
 import 'package:fractal/providers/anonimity_switch_provider.dart';
 import 'package:fractal/providers/blocked_user_provider.dart';
 import 'package:fractal/providers/messaging_provider.dart';
@@ -45,17 +46,36 @@ class _LoginPageState extends State<LoginPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final Firestore _db = Firestore.instance;
   Widget _appBarTitle = new Text('Fractal');
-  final FirebaseMessaging _fcm = FirebaseMessaging();
-  StreamSubscription iosSubscription;
-
-  void _requestNotifications() {
-    if (Platform.isIOS) {
-      iosSubscription = _fcm.onIosSettingsRegistered.listen((data) {
-        //TODO: save the token  OR subscribe to a topic here
-      });
-
-      _fcm.requestNotificationPermissions(IosNotificationSettings());
-    }
+  FirebaseMessaging fcm = FirebaseMessaging();
+  final navigatorKey = GlobalKey<NavigatorState>();
+  
+  _openChatAfterNotification(Map<String, dynamic> message) async {
+    // joinedChatId
+    String joinedChatId = message['joinedChatId'];
+    String notificationTitle = message['aps']['alert']['title'];
+    // Scaffold.of(context).showSnackBar(SnackBar(
+    //   content: Text("Loading $notificationTitle"),
+    //   duration: Duration(seconds: 4),
+    // ));
+    // TODO: sort out caching
+    setState(() {
+      showCircularProgress = true;
+    });
+    DocumentSnapshot chatDocumentSnapshot = await Firestore.instance
+        .collection('joinedChats')
+        .document(joinedChatId)
+        .get();
+    ChatModel chatDocument = ChatModel();
+    chatDocument
+        .setChatModelFromJoinedChatDocumentSnapshot(chatDocumentSnapshot);    
+    navigatorKey.currentState.push(new MaterialPageRoute(builder: (context) {
+      return new ChatScreen(
+        chatDocument: chatDocument,
+      );
+    }));
+    setState(() {
+      showCircularProgress = false;
+    });
   }
 
   Future<Null> _function() async {
@@ -82,28 +102,27 @@ class _LoginPageState extends State<LoginPage> {
     } else {}
   }
 
-  // TODO: move FCM login into a BLoC or a provider
-  void _fcmSetup() {
-    _fcm.configure(
+  // _pullOutSavedChats() {}
+
+  @override
+  void initState() {
+    super.initState();
+    this._function();
+    fcm.configure(
       onMessage: (Map<String, dynamic> message) async {
         print("onMessage: $message");
       },
       onLaunch: (Map<String, dynamic> message) async {
         print("onLaunch: $message");
         // TODO optional
+        _openChatAfterNotification(message);
       },
       onResume: (Map<String, dynamic> message) async {
         print("onResume: $message");
+        _openChatAfterNotification(message);
         // TODO optional
       },
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    this._function();
-    this._requestNotifications();
   }
 
   @override
@@ -127,12 +146,13 @@ class _LoginPageState extends State<LoginPage> {
           ChangeNotifierProvider<BlockedUserManager>(
               builder: (_) => BlockedUserManager()),
           ChangeNotifierProvider<NotificationsManager>(
-              builder: (_) => NotificationsManager(fcm: _fcm)),
+              builder: (_) => NotificationsManager(context: context, fcm: fcm)),
         ],
         child: MaterialApp(
           // TODO: make sure works, add more
           routes: {'/chat': (context) => ChatScreen()},
           debugShowCheckedModeBanner: false,
+          navigatorKey: navigatorKey,
           home: Scaffold(
               appBar: AppBar(
                 elevation: 0.0,

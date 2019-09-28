@@ -28,7 +28,7 @@ class ChatScreenManager with ChangeNotifier {
           .then((snapshot) {
         for (DocumentSnapshot ds in snapshot.documents) {
           ds.reference.delete();
-          notificationsProvider.fcm.unsubscribeFromTopic(chatDocument.id);
+          // notificationsProvider.fcm.unsubscribeFromTopic(chatDocument.id);
         }
       });
     } else {
@@ -83,7 +83,7 @@ class ChatScreenManager with ChangeNotifier {
         },
       });
       // NOTIFICATIONS, notifylisteners()?
-      notificationsProvider.fcm.subscribeToTopic(chatDocument.id);
+      // notificationsProvider.fcm.subscribeToTopic(chatDocument.id);
     } else {
       Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
         return new LoginPage(redirectBack: true);

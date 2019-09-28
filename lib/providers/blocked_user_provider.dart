@@ -12,10 +12,10 @@ class BlockedUserManager extends ChangeNotifier {
   get blockedUserIds => _blockedUserIds;
 
   void kickstartBlockedUserIds() {
-    print('Kickstarting');
+    // print('Kickstarting');
     if (!AuthState.currentUser.data.containsKey('blockedUsers') &&
         _blockedUserIds == null) {
-      print("came here1");
+      // print("came here1");
       _blockedUserIds = AuthState.currentUser.data['blockedUsers'];
     }
 

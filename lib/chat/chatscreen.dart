@@ -30,6 +30,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class ChatScreenState extends State<ChatScreen> {
+
   _buildAppBarActions(ChatModel chatDocument,
       ChatScreenManager chatScreenProvider, CachedChats cachedChatsProvider, NotificationsManager noticationsProvider) {
     return cachedChatsProvider.isChatSaved(chatDocument) != null

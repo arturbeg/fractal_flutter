@@ -1,6 +1,7 @@
 import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fractal/providers/anonimity_switch_provider.dart';
+import 'package:fractal/providers/notifications_provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import './auth_state.dart';
@@ -84,11 +85,16 @@ class _LoginPageState extends State<LoginPage> {
 
   void onLoginStatusChanged(bool isLoggedIn,
       {userDocument, String profileUrl}) async {
+
+    // TODO: find a right place to put this in    
+    NotificationsManager notificationsProvider = Provider.of<NotificationsManager>(context);
+
     if (isLoggedIn) {
       AuthState.instance.setUser(userDocument, profileUrl);
       SharedPreferences prefs;
       prefs = await SharedPreferences.getInstance();
       prefs.setString("id", userDocument.documentID);
+      notificationsProvider.kickStartFCM();
     } else {
       AuthState.instance.setUser(null, null);
     }
@@ -330,6 +336,9 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   _logout() async {
+    NotificationsManager notificationsProvider = Provider.of<NotificationsManager>(context);
+    // TODO: check user type to do the right logout
+    await notificationsProvider.deleteDeviceToken();
     await facebookLogin.logOut();
     await _googleSignIn.signOut();
 
@@ -337,7 +346,7 @@ class _LoginPageState extends State<LoginPage> {
     prefs = await SharedPreferences.getInstance();
     prefs.clear();
     // prefs.commit(); --> is there anything that is used instead
-
+    
     _auth.signOut();
     onLoginStatusChanged(false);
   }
