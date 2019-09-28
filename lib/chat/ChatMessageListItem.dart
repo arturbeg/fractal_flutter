@@ -301,8 +301,9 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
   }
 
   _buildSenderProfilePhoto() {
-    bool isGoogle = (AuthState.currentUser.data.containsKey('isGoogle') &&
-        AuthState.currentUser.data['isGoogle']);
+    // bool isGoogle = (AuthState.currentUser.data.containsKey('isGoogle') &&
+    //     AuthState.currentUser.data['isGoogle']);
+    bool isGoogle = widget.messageSnapshot.data['sender'].containsKey('isGoogle') && widget.messageSnapshot.data['sender']['isGoogle'];
     bool isAnonymous =
         widget.messageSnapshot.data['sender']['isAnonymous'] != null &&
             widget.messageSnapshot.data['sender']['isAnonymous'];
@@ -315,8 +316,8 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
           height: 30.0,
           margin: const EdgeInsets.only(right: 8.0),
           child: CachedNetworkImage(
-            imageUrl: !isGoogle
-                  ? AuthState.currentUser.data['googleProfileURL']
+            imageUrl: isGoogle
+                  ? widget.messageSnapshot.data['sender']['googleProfileURL']
                   : 'https://graph.facebook.com/${widget.messageSnapshot['sender']['facebookID']}/picture?height=30',
             imageBuilder: (context, imageProvider) => new CircleAvatar(
               backgroundImage: isAnonymous
