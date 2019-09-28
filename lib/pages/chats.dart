@@ -75,7 +75,12 @@ class ChatState extends State<chats> {
     if (AuthState.currentUser == null) {
       return _buildSuggestionToLogIn();
     } else {
-      return _buildSavedChatsList(cachedChatsProvider.getCachedSavedChats());
+      return RefreshIndicator(
+        child: _buildSavedChatsList(cachedChatsProvider.getCachedSavedChats()),
+        color: Colors.blue,
+        backgroundColor: Colors.white,
+        onRefresh: cachedChatsProvider.fetchSavedChatsForCache, 
+      );
     }
   }
 }

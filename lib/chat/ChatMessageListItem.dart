@@ -303,7 +303,14 @@ class _ChatMessageListItemState extends State<ChatMessageListItem> {
   _buildSenderProfilePhoto() {
     // bool isGoogle = (AuthState.currentUser.data.containsKey('isGoogle') &&
     //     AuthState.currentUser.data['isGoogle']);
-    bool isGoogle = widget.messageSnapshot.data['sender'].containsKey('isGoogle') && widget.messageSnapshot.data['sender']['isGoogle'];
+    // TODO: clean up this mess
+    bool isGoogle;
+    if(widget.messageSnapshot.data['sender'].containsKey('isGoogle')) {
+      isGoogle = widget.messageSnapshot.data['sender']['isGoogle'];
+    } else {
+      isGoogle = false;
+    }
+    isGoogle = isGoogle == null ? false : isGoogle;
     bool isAnonymous =
         widget.messageSnapshot.data['sender']['isAnonymous'] != null &&
             widget.messageSnapshot.data['sender']['isAnonymous'];

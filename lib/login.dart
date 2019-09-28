@@ -85,6 +85,15 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  void _kickstartProviders() {
+    BlockedUserManager blockedUsersProvider = Provider.of<BlockedUserManager>(context);
+    // CachedChats cachedChatsProvider = Provider.of<CachedChats>(context);
+    AnonymitySwitch anonymitySwitchProvider = Provider.of<AnonymitySwitch>(context);
+
+    blockedUsersProvider.kickstartBlockedUserIds();
+    anonymitySwitchProvider.resetAnonimitySwitch();
+  }
+
   void onLoginStatusChanged(bool isLoggedIn,
       {userDocument, String profileUrl}) async {
 
@@ -97,6 +106,7 @@ class _LoginPageState extends State<LoginPage> {
       prefs = await SharedPreferences.getInstance();
       prefs.setString("id", userDocument.documentID);
       notificationsProvider.kickStartFCM();
+      this._kickstartProviders();
     } else {
       AuthState.instance.setUser(null, null);
     }

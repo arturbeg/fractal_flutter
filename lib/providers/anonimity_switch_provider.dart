@@ -22,7 +22,7 @@ class AnonymitySwitch extends ChangeNotifier {
     String numericString = randomNumeric(4).toString();
     return "Anonymous ${numericString}";
   }
-
+  
   void resetAnonimitySwitch() {
     _isAnonymous = initAnonymitySwitch();
     _anonymousName = generateAnonymousName();

@@ -23,7 +23,7 @@ class CachedChats with ChangeNotifier {
 
   List<ChatModel> getCachedSavedChats() {
     if(_cachedSavedChats==null) {
-      _fetchSavedChatsForCache();
+      fetchSavedChatsForCache();
       return null;
     } else {
       _cachedSavedChats.sort(
@@ -47,7 +47,7 @@ class CachedChats with ChangeNotifier {
 
   bool isChatSaved(ChatModel chatDocument) {
     if(_cachedSavedChats==null) {
-      _fetchSavedChatsForCache();
+      fetchSavedChatsForCache();
       return null;
     }
 
@@ -80,7 +80,7 @@ class CachedChats with ChangeNotifier {
     notifyListeners();
   }
   
-  _fetchSavedChatsForCache() async {
+  Future<Null> fetchSavedChatsForCache() async {
     QuerySnapshot savedChats = await Firestore.instance
         .collection('joinedChats')
         .where('user.id', isEqualTo: AuthState.currentUser.documentID)
@@ -97,6 +97,7 @@ class CachedChats with ChangeNotifier {
     ).toList();
 
     updatedCachedSavedChats(savedChatsChatModel);
+    return null;
   }
 
   Future<Null> fetchExploredChatsForCache() async {
