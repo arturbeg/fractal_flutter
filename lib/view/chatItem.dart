@@ -158,7 +158,7 @@ class _ChatItemState extends State<ChatItem> {
         if (!snapshot.hasData) {
           return Text('');
         }
-
+        
         switch (snapshot.connectionState) {
           case ConnectionState.none:
             return Text('');
