@@ -30,27 +30,53 @@ class ChatScreen extends StatefulWidget {
 }
 
 class ChatScreenState extends State<ChatScreen> {
-
-  _buildAppBarActions(ChatModel chatDocument,
-      ChatScreenManager chatScreenProvider, CachedChats cachedChatsProvider, NotificationsManager noticationsProvider) {
-    return cachedChatsProvider.isChatSaved(chatDocument) != null
-        ? <Widget>[
-            IconButton(
-              icon: cachedChatsProvider.isChatSaved(chatDocument)
-                  ? Icon(Icons.bookmark)
-                  : Icon(Icons.bookmark_border),
-              onPressed: () {
-                if (!cachedChatsProvider.isChatSaved(chatDocument)) {
-                  chatScreenProvider.joinChat(
-                      widget.chatDocument, context, cachedChatsProvider, noticationsProvider);
-                } else {
-                  chatScreenProvider.leaveChat(
-                      widget.chatDocument, context, cachedChatsProvider, noticationsProvider);
-                }
-              },
-            )
-          ]
-        : null;
+  _buildAppBarActions(
+      ChatModel chatDocument,
+      ChatScreenManager chatScreenProvider,
+      CachedChats cachedChatsProvider,
+      NotificationsManager noticationsProvider) {
+    return <Widget>[
+            StreamBuilder<QuerySnapshot>(
+                stream: Firestore.instance
+                    .collection('joinedChats')
+                    .where('chatId', isEqualTo: chatDocument.id)
+                    .where('user.id',
+                        isEqualTo: AuthState.currentUser.documentID)
+                    .limit(1)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError)
+                    return Text('Error: ${snapshot.error}');
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.none:
+                      return Text("");
+                    case ConnectionState.waiting:
+                      return Text("");
+                    default:
+                      return IconButton(
+                        icon: snapshot.hasData
+                            ? Icon(Icons.bookmark)
+                            : Icon(Icons.bookmark_border),
+                        onPressed: () {
+                          if (!snapshot.hasData) {
+                            chatScreenProvider.joinChat(
+                                widget.chatDocument,
+                                context,
+                                cachedChatsProvider,
+                                noticationsProvider);
+                          } else {
+                            chatScreenProvider.leaveChat(
+                                widget.chatDocument,
+                                context,
+                                cachedChatsProvider,
+                                noticationsProvider);
+                          }
+                        },
+                      );
+                  }
+                  return null; // unreachable
+                })
+          ];
   }
 
   @override
@@ -58,7 +84,8 @@ class ChatScreenState extends State<ChatScreen> {
     ChatScreenManager chatScreenProvider =
         Provider.of<ChatScreenManager>(context);
     CachedChats cachedChatsProvider = Provider.of<CachedChats>(context);
-    NotificationsManager notificationsProvider = Provider.of<NotificationsManager>(context);
+    NotificationsManager notificationsProvider =
+        Provider.of<NotificationsManager>(context);
     return Scaffold(
         appBar: new AppBar(
           title: new GestureDetector(
@@ -72,8 +99,8 @@ class ChatScreenState extends State<ChatScreen> {
             child: new Text(widget.chatDocument.name),
           ),
           actions: AuthState.currentUser != null
-              ? _buildAppBarActions(
-                  widget.chatDocument, chatScreenProvider, cachedChatsProvider, notificationsProvider)
+              ? _buildAppBarActions(widget.chatDocument, chatScreenProvider,
+                  cachedChatsProvider, notificationsProvider)
               : null,
         ),
         body: new Container(

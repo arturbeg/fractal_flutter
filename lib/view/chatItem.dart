@@ -46,8 +46,7 @@ class _ChatItemState extends State<ChatItem> {
     lastMessagesProvider.fetchLastMessageForCache(chatDocument.id);
   }
 
-  String _getShortenedName(
-      String name, BuildContext context) {
+  String _getShortenedName(String name, BuildContext context) {
     name = name.replaceAll("\n", " ");
     return name;
   }
@@ -73,25 +72,27 @@ class _ChatItemState extends State<ChatItem> {
   }
 
   _buildFutureBuilder() {
-    return FutureBuilder<String>(
-      future: chatDocument.isSubchat
-          ? _subchatParentMessageRepliesCount()
-          : _chatTotalNumberOfMessages(),
-      builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-        // print(snapshot);
-        switch (snapshot.connectionState) {
-          case ConnectionState.none:
-            return Text('');
-          case ConnectionState.active:
-          case ConnectionState.waiting:
-            return Text('');
-          case ConnectionState.done:
-            if (snapshot.hasError) return Text('');
-            return Text(snapshot.data);
-        }
-        return null; // unreachable
-      },
-    );
+    // TODO: utilise the advantage of replies count?
+    return _chatTotalNumberOfMessages();
+    // return FutureBuilder<String>(
+    //   future: chatDocument.isSubchat
+    //       ? _subchatParentMessageRepliesCount()
+    //       : _chatTotalNumberOfMessages(),
+    //   builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+    //     // print(snapshot);
+    //     switch (snapshot.connectionState) {
+    //       case ConnectionState.none:
+    //         return Text('');
+    //       case ConnectionState.active:
+    //       case ConnectionState.waiting:
+    //         return Text('');
+    //       case ConnectionState.done:
+    //         if (snapshot.hasError) return Text('');
+    //         return Text(snapshot.data);
+    //     }
+    //     return null; // unreachable
+    //   },
+    // );
   }
 
   _buildChatItemMiniInfo() {
@@ -131,12 +132,46 @@ class _ChatItemState extends State<ChatItem> {
     });
   }
 
-  Future<String> _chatTotalNumberOfMessages() async {
-    QuerySnapshot messages = await Firestore.instance
-        .collection('messages')
-        .where('chatId', isEqualTo: chatDocument.id)
-        .getDocuments();
-    return messages.documents.length.toString();
+  Widget _chatTotalNumberOfMessages() {
+    // QuerySnapshot messages = await Firestore.instance
+    //     .collection('messages')
+    //     .where('chatId', isEqualTo: chatDocument.id)
+    //     .getDocuments();
+    // return messages.documents.length.toString();
+    return StreamBuilder<String>(
+      stream: Firestore.instance
+          .collection('chats')
+          .document(chatDocument.id)
+          .snapshots()
+          .map((snapshot) {
+        if (snapshot.data.containsKey('messagesCount')) {
+          return snapshot.data['messagesCount'].toString();
+        } else {
+          return "";//0.toString(); TODO: think of a neater solution (given by the backup provider that does the computation by hand?)
+        }
+      }), // a Stream<int> or null
+      builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+        if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        }
+
+        if (!snapshot.hasData) {
+          return Text('');
+        }
+
+        switch (snapshot.connectionState) {
+          case ConnectionState.none:
+            return Text('');
+          case ConnectionState.waiting:
+            return Text('');
+          case ConnectionState.active:
+            return Text(snapshot.data);
+          case ConnectionState.done:
+            return Text(snapshot.data);
+        }
+        return null; // unreachable
+      },
+    );
   }
 
   _buildChatItemListTile(ReportedChatIds reportedChatsProvider,
