@@ -6,13 +6,14 @@ import 'package:fractal/auth_state.dart';
 import 'package:fractal/model/models.dart';
 
 /*
-https://stackoverflow.com/questions/53459669/so-what-is-the-simplest-approach-for-caching-in-flutter
+https://stackoverflow.com/questions/53459669 so-what-is-the-simplest-approach-for-caching-in-flutter
 */
 
 // TODO: later name CachedChatsAndFirebase
 class CachedChats with ChangeNotifier {
 
   List<ChatModel> _cachedSavedChats;
+
   List<ChatModel> _cachedExploredChats;
 
   void clearCache() {
@@ -70,11 +71,11 @@ class CachedChats with ChangeNotifier {
     ).toList();
 
     if(isJoining && !_cachedSavedChatsIds.contains(chatDocument.id)) {
-      _cachedSavedChats.add(chatDocument);
+      _cachedSavedChats.add(chatDocument); // need to remove the chatDocument with that id..
     }
 
     if(!isJoining && _cachedSavedChatsIds.contains(chatDocument.id)) {
-      _cachedSavedChats.remove(chatDocument);
+      _cachedSavedChats.removeWhere((item) => item.id == chatDocument.id);
     }
 
     notifyListeners();

@@ -15,7 +15,9 @@ class ChatScreenManager with ChangeNotifier {
 
   void leaveChat(ChatModel chatDocument, BuildContext context,
       CachedChats cachedChatsProvider, NotificationsManager notificationsProvider) async {
+    print('here');
     if (cachedChatsProvider.getCachedSavedChats() != null) {
+      print('here11');
       cachedChatsProvider.locallyUpdateCachedSavedChats(chatDocument, false);
     }
     if (AuthState.currentUser != null) {
