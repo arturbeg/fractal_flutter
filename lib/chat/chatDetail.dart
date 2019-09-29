@@ -1,5 +1,9 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:fractal/auth_state.dart';
+import 'package:provider/provider.dart';
+
+import '../chat_screen_provider.dart';
 import '../view/chatItem.dart';
 
 // import 'package:FlutterNews/localization/MyLocalizations.dart';
@@ -65,7 +69,7 @@ class _DetailPageState extends State<DetailPage>
                         widget.chatDocument.name,
                         widget.chatDocument.about,
                         widget.chatDocument.url,
-                        context),
+                        context)
                   ],
                 ),
               ),
@@ -136,6 +140,7 @@ class _DetailPageState extends State<DetailPage>
             ? <Widget>[
                 _getTittle(tittle),
                 _getDescription(description),
+                _buildMuteButton(),
               ]
             : <Widget>[
                 _getTittle(tittle),
@@ -145,9 +150,53 @@ class _DetailPageState extends State<DetailPage>
                 _getLink(link, context),
                 _getOriginalAntRedditLink(),
                 _getRedditPostLink(context),
+                _buildMuteButton()
               ],
       ),
     );
+  }
+
+  _buildMuteButton() {
+    ChatScreenManager chatScreenProvider = Provider.of<ChatScreenManager>(context);
+    // TODO: turn into an ENUM
+    return StreamBuilder<bool>(
+        stream: Firestore.instance
+            .collection('joinedChats')
+            .where('chatId', isEqualTo: widget.chatDocument.id)
+            .where('user.id', isEqualTo: AuthState.currentUser.documentID)
+            .limit(1)
+            .snapshots()
+            .map((snapshot) {
+          if (snapshot.documents[0].data.containsKey('notificationsON')) {
+            return snapshot.documents[0].data['notificationsON'];
+          } else {
+            return false;
+          }
+        }),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) return Text('Error: ${snapshot.error}');
+          if(!snapshot.hasData) return Text("");
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+              return Text("");
+            case ConnectionState.waiting:
+              return Text("");
+            default:
+              return new SizedBox(
+                  width: double.infinity,
+                  // height: double.infinity,
+                  child: new RaisedButton(
+                    child: snapshot.data ? Text("Mute notifications") : Text("Enable notifications"),
+                    color: snapshot.data ? Colors.red : Colors.green,
+                    textColor: Colors.white,
+                    // TODO: when turn on the notifications make sure just in case to make the chat saved again
+                    onPressed: () {
+                        chatScreenProvider.notificationSwitch(widget.chatDocument, !snapshot.data);
+                    },
+                  ));
+          }
+          return null; // unreachable
+        });
   }
 
   Widget _getAntLink() {

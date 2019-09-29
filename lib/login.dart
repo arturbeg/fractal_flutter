@@ -359,6 +359,11 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   _logout() async {
+
+    setState(() {
+      showCircularProgress = true;
+    });
+
     NotificationsManager notificationsProvider = Provider.of<NotificationsManager>(context);
     
 

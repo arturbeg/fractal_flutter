@@ -13,6 +13,22 @@ import 'package:fractal/providers/notifications_provider.dart';
 // TODO: later migrate all the joined stuff into MOOR
 class ChatScreenManager with ChangeNotifier {
 
+  void notificationSwitch(ChatModel chatDocument, bool notify) async {
+    // check if the joined chat even exists, assume there is just one as planned
+    QuerySnapshot joinedChatDocument = await Firestore.instance.collection('joinedChats').where('chatId', isEqualTo: chatDocument.id)
+            .where('user.id', isEqualTo: AuthState.currentUser.documentID).limit(1).getDocuments();
+    if(joinedChatDocument == null) {
+      print("The joined chat object does not exist, need to save it first");
+    } else {
+       var data = {
+        'notificationsON': notify
+      };
+      joinedChatDocument.documents[0].reference.updateData(data);
+    }
+    
+  }
+  
+  // TODO: notification switch approach for the leave and join chat
   void leaveChat(ChatModel chatDocument, BuildContext context,
       CachedChats cachedChatsProvider, NotificationsManager notificationsProvider) async {
     print('here');
@@ -50,6 +66,9 @@ class ChatScreenManager with ChangeNotifier {
 
     if (AuthState.currentUser != null) {
       final reference = Firestore.instance.collection('joinedChats');
+
+      // check if the 
+
       reference.document().setData({
         // TODO: update ChatModel
         "notificationsON": true,
