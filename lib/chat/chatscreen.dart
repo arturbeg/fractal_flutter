@@ -36,47 +36,49 @@ class ChatScreenState extends State<ChatScreen> {
       CachedChats cachedChatsProvider,
       NotificationsManager noticationsProvider) {
     return <Widget>[
-            StreamBuilder<QuerySnapshot>(
-                stream: Firestore.instance
-                    .collection('joinedChats')
-                    .where('chatId', isEqualTo: chatDocument.id)
-                    .where('user.id',
-                        isEqualTo: AuthState.currentUser.documentID)
-                    .limit(1)
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError)
-                    return Text('Error: ${snapshot.error}');
-                  switch (snapshot.connectionState) {
-                    case ConnectionState.none:
-                      return Text("");
-                    case ConnectionState.waiting:
-                      return Text("");
-                    default:
-                      return IconButton(
-                        icon: snapshot.hasData
-                            ? Icon(Icons.bookmark)
-                            : Icon(Icons.bookmark_border),
-                        onPressed: () {
-                          if (!snapshot.hasData) {
-                            chatScreenProvider.joinChat(
-                                widget.chatDocument,
-                                context,
-                                cachedChatsProvider,
-                                noticationsProvider);
-                          } else {
-                            chatScreenProvider.leaveChat(
-                                widget.chatDocument,
-                                context,
-                                cachedChatsProvider,
-                                noticationsProvider);
-                          }
-                        },
-                      );
-                  }
-                  return null; // unreachable
-                })
-          ];
+      StreamBuilder<bool>(
+          stream: Firestore.instance
+              .collection('joinedChats')
+              .where('chatId', isEqualTo: chatDocument.id)
+              .where('user.id', isEqualTo: AuthState.currentUser.documentID)
+              .limit(1)
+              .snapshots()
+              .map((snapshot) {
+            return snapshot.documents.length > 0;
+          }),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            }
+            
+            if (!snapshot.hasData) {
+              return Text("      "); // TODO: fix this spaces nonsense implementation
+            }
+
+            switch (snapshot.connectionState) {
+              case ConnectionState.none:
+                return Text("       ");
+              case ConnectionState.waiting:
+                return Text("       ");
+              default:
+                return IconButton(
+                  icon: snapshot.data
+                      ? Icon(Icons.bookmark)
+                      : Icon(Icons.bookmark_border),
+                  onPressed: () {
+                    if (!snapshot.data) {
+                      chatScreenProvider.joinChat(widget.chatDocument, context,
+                          cachedChatsProvider, noticationsProvider);
+                    } else {
+                      chatScreenProvider.leaveChat(widget.chatDocument, context,
+                          cachedChatsProvider, noticationsProvider);
+                    }
+                  },
+                );
+            }
+            return null; // unreachable
+          })
+    ];
   }
 
   @override
