@@ -31,9 +31,8 @@ class ChatScreenManager with ChangeNotifier {
   // TODO: notification switch approach for the leave and join chat
   void leaveChat(ChatModel chatDocument, BuildContext context,
       CachedChats cachedChatsProvider, NotificationsManager notificationsProvider) async {
-    print('here');
     if (cachedChatsProvider.getCachedSavedChats() != null) {
-      print('here11');
+      chatDocument.joinedTimestamp = DateTime.now();
       cachedChatsProvider.locallyUpdateCachedSavedChats(chatDocument, false);
     }
     if (AuthState.currentUser != null) {

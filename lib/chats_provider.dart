@@ -29,7 +29,7 @@ class CachedChats with ChangeNotifier {
     } else {
       _cachedSavedChats.sort(
       (ChatModel a, ChatModel b) {
-        return a.timestamp.compareTo(b.timestamp);
+        return a.joinedTimestamp.compareTo(b.joinedTimestamp);
       }
     );
 

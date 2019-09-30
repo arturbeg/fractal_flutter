@@ -18,6 +18,7 @@ class ChatModel {
   var user; // only related to the joinedChat case
   var url;
   RedditModel reddit;
+  DateTime joinedTimestamp;
 
   getFirebaseTimestamp() {
     var millisecondsSinceEpoch = timestamp.millisecondsSinceEpoch;
@@ -39,6 +40,7 @@ class ChatModel {
         isGoogle: joinedChatDocument['owner']['isGoogle'],
         googleProfileURL: joinedChatDocument['owner']['googleProfileURL']);
     timestamp = joinedChatDocument['chatTimestamp'].toDate();
+    joinedTimestamp = joinedChatDocument['timestamp'].toDate();
     
     lastMessageTimestamp = joinedChatDocument['lastMessageTimestamp'].toDate();
 
