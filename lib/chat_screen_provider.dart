@@ -18,7 +18,7 @@ class ChatScreenManager with ChangeNotifier {
     QuerySnapshot joinedChatDocument = await Firestore.instance.collection('joinedChats').where('chatId', isEqualTo: chatDocument.id)
             .where('user.id', isEqualTo: AuthState.currentUser.documentID).limit(1).getDocuments();
     if(joinedChatDocument == null) {
-      print("The joined chat object does not exist, need to save it first");
+      // print("The joined chat object does not exist, need to save it first");
     } else {
        var data = {
         'notificationsON': notify
@@ -60,6 +60,7 @@ class ChatScreenManager with ChangeNotifier {
     // TODO: update saved messages cache
 
     if (cachedChatsProvider.getCachedSavedChats() != null) {
+      chatDocument.joinedTimestamp = DateTime.now();
       cachedChatsProvider.locallyUpdateCachedSavedChats(chatDocument, true);
     }
 

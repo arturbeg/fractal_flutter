@@ -38,7 +38,7 @@ class _SearchState extends State<Search> {
           switch (snapshot.connectionState) {
             // perform caching as well
             case ConnectionState.none:
-              return Text("Connection state is NONE");
+              return Text("No connection to search results");
             case ConnectionState.active:
             case ConnectionState.waiting:
               return Center(child: LinearProgressIndicator(),);
