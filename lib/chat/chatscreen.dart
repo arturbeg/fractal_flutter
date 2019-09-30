@@ -52,14 +52,14 @@ class ChatScreenState extends State<ChatScreen> {
             }
             
             if (!snapshot.hasData) {
-              return Text("      "); // TODO: fix this spaces nonsense implementation
+              return Text(""); // TODO: fix this spaces nonsense implementation
             }
 
             switch (snapshot.connectionState) {
               case ConnectionState.none:
-                return Text("       ");
+                return Text("");
               case ConnectionState.waiting:
-                return Text("       ");
+                return Text("");
               default:
                 return IconButton(
                   icon: snapshot.data
@@ -98,7 +98,7 @@ class ChatScreenState extends State<ChatScreen> {
                 );
               }));
             },
-            child: new Text(widget.chatDocument.name),
+            child: Container(child: new Text(widget.chatDocument.name), constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),),
           ),
           actions: AuthState.currentUser != null
               ? _buildAppBarActions(widget.chatDocument, chatScreenProvider,

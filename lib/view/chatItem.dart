@@ -95,26 +95,48 @@ class _ChatItemState extends State<ChatItem> {
     // );
   }
 
+  _buildLastMessageTimestamp() {
+    return StreamBuilder<DateTime>(
+        stream: Firestore.instance
+            .collection('messages')
+            .where('chatId', isEqualTo: chatDocument.id)
+            .orderBy("timestamp", descending: true)
+            .limit(1)
+            .snapshots()
+            .map((snapshot) {
+          if (snapshot.documents.length == 0) {
+            return chatDocument.timestamp;
+          } else {
+            return snapshot.documents[0].data['timestamp'].toDate();
+          }
+        }),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) return Text('');
+          if (!snapshot.hasData) return Text('');
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+              return Text('');
+            case ConnectionState.waiting:
+              return Text('');
+            default:
+              return Text(
+                timeago.format(snapshot.data, locale: 'en_short'),
+                style: TextStyle(color: Colors.black45),
+              );
+          }
+          return null; // unreachable
+        });
+  }
+
   _buildChatItemMiniInfo() {
     if (chatDocument.isSubchat) {
       return Column(
-        children: <Widget>[
-          Text(
-            timeago.format(chatDocument.lastMessageTimestamp,
-                locale: 'en_short'),
-            style: TextStyle(color: Colors.black45),
-          ),
-          _buildFutureBuilder()
-        ],
+        children: <Widget>[_buildLastMessageTimestamp(), _buildFutureBuilder()],
       );
     } else {
       return Column(
         children: <Widget>[
-          Text(
-            timeago.format(chatDocument.lastMessageTimestamp,
-                locale: 'en_short'),
-            style: TextStyle(color: Colors.black45),
-          ),
+          _buildLastMessageTimestamp(),
           Text(shortenNumber(chatDocument.reddit.reddit_score)),
           _buildFutureBuilder()
         ],
@@ -147,7 +169,7 @@ class _ChatItemState extends State<ChatItem> {
         if (snapshot.data.containsKey('messagesCount')) {
           return snapshot.data['messagesCount'].toString();
         } else {
-          return "";//0.toString(); TODO: think of a neater solution (given by the backup provider that does the computation by hand?)
+          return ""; //0.toString(); TODO: think of a neater solution (given by the backup provider that does the computation by hand?)
         }
       }), // a Stream<int> or null
       builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
@@ -158,7 +180,7 @@ class _ChatItemState extends State<ChatItem> {
         if (!snapshot.hasData) {
           return Text('');
         }
-        
+
         switch (snapshot.connectionState) {
           case ConnectionState.none:
             return Text('');
