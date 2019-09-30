@@ -54,19 +54,16 @@ class ChatState extends State<chats> {
 
   _buildSuggestionToLogIn() {
     return Center(
-        child: new SizedBox(
-      width: double.infinity,
-      child: new FlatButton(
+      child: new RaisedButton(
         child: Text('Log in to see your saved chats'),
-        textColor: Colors.black,
+        color: Color.fromRGBO(0, 132, 255, 0.7),
+        textColor: Colors.white,
         onPressed: () {
           //// print('pressed!');
           Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
             return new LoginPage(redirectBack: true);
           }));
-        },
-      ),
-    ));
+        }));
   }
 
   @override

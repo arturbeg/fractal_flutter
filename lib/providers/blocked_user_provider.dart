@@ -18,17 +18,11 @@ class BlockedUserManager extends ChangeNotifier {
   
   void kickstartBlockedUserIds() {
     // print('Kickstarting');
-    if (!AuthState.currentUser.data.containsKey('blockedUsers') &&
+    if (AuthState.currentUser != null && !AuthState.currentUser.data.containsKey('blockedUsers') &&
         _blockedUserIds == null) {
       // print("came here1");
       _blockedUserIds = AuthState.currentUser.data['blockedUsers'];
     }
-
-    // if (!AuthState.currentUser.data.containsKey('blockedUsers') &&
-    //     _blockedUserIds == null) {
-    //   print("came here");
-    //   _blockedUserIds = [];
-    // }
   }
 
   bool isSenderBlocked(String senderId) {

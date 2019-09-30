@@ -159,7 +159,9 @@ class _DetailPageState extends State<DetailPage>
   _buildMuteButton() {
     ChatScreenManager chatScreenProvider = Provider.of<ChatScreenManager>(context);
     // TODO: turn into an ENUM
-    return StreamBuilder<bool>(
+
+    if(AuthState.currentUser != null) {
+          return StreamBuilder<bool>(
         stream: Firestore.instance
             .collection('joinedChats')
             .where('chatId', isEqualTo: widget.chatDocument.id)
@@ -197,6 +199,11 @@ class _DetailPageState extends State<DetailPage>
           }
           return null; // unreachable
         });
+    } else {
+      return Text("");
+    }
+
+
   }
 
   Widget _getAntLink() {
