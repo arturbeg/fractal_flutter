@@ -13,6 +13,7 @@ class CommunityModel {
 
   CommunityModel({this.id, this.name, this.about, this.owner, this.timestamp, this.avatarURL});
 
+
 }
 
 class CommunityOwnerModel {
