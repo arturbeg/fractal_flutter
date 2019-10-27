@@ -41,7 +41,7 @@ class _SearchState extends State<Search> {
               return Text("No connection to search results");
             case ConnectionState.active:
             case ConnectionState.waiting:
-              return Center(child: LinearProgressIndicator(),);
+              return Center(child: LinearProgressIndicator());
             case ConnectionState.done:
               if (snapshot.hasError) {
                 return Text("Error: ${snapshot.error}");
@@ -89,7 +89,12 @@ class _SearchState extends State<Search> {
       child: Column(
         children: <Widget>[
           _buildSearchInput(),
-          _buildSearchResults(),
+          GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () {
+                FocusScope.of(context).requestFocus(new FocusNode());
+              },
+              child: Container(height: MediaQuery.of(context).size.height, width: MediaQuery.of(context).size.width, child: _buildSearchResults()), ),
         ],
       ),
     );

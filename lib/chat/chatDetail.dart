@@ -87,7 +87,8 @@ class _DetailPageState extends State<DetailPage>
           .limit(80)
           .snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-        if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
+        // if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
+        if (snapshot.hasError) return new Text('');
         switch (snapshot.connectionState) {
           case ConnectionState.waiting:
             return new Center(
@@ -176,7 +177,8 @@ class _DetailPageState extends State<DetailPage>
           }
         }),
         builder: (context, snapshot) {
-          if (snapshot.hasError) return Text('Error: ${snapshot.error}');
+          // if (snapshot.hasError) return Text('Error: ${snapshot.error}');
+          if (snapshot.hasError) return Text('');          
           if(!snapshot.hasData) return Text("");
           switch (snapshot.connectionState) {
             case ConnectionState.none:

@@ -47,9 +47,8 @@ class ChatScreenState extends State<ChatScreen> {
             return snapshot.documents.length > 0;
           }),
           builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return Text('Error: ${snapshot.error}');
-            }
+          // if (snapshot.hasError) return Text('Error: ${snapshot.error}');
+          if (snapshot.hasError) return Text('');
             
             if (!snapshot.hasData) {
               return Text(""); // TODO: fix this spaces nonsense implementation

@@ -96,8 +96,8 @@ class _MessagesListState extends State<MessagesList> {
             stream: messagesProvider.fetchMessages(widget.chatDocument.id),
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (snapshot.hasError)
-                return new Text('Error: ${snapshot.error}');
+          // if (snapshot.hasError) return Text('Error: ${snapshot.error}');
+          if (snapshot.hasError) return Text('');
               // if (snapshot.connectionState == ConnectionState.waiting) {
               //   return Center(
               //     child: CircularProgressIndicator(),

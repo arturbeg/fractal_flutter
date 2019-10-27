@@ -173,9 +173,8 @@ class _ChatItemState extends State<ChatItem> {
         }
       }), // a Stream<int> or null
       builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-        if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        }
+        // if (snapshot.hasError) return Text('Error: ${snapshot.error}');
+        if (snapshot.hasError) return Text('');
 
         if (!snapshot.hasData) {
           return Text('');
@@ -247,10 +246,8 @@ class _ChatItemState extends State<ChatItem> {
                                           chatDocument.id),
                                   builder: (BuildContext context,
                                       AsyncSnapshot<QuerySnapshot> snapshot) {
-                                    if (snapshot.hasError) {
-                                      return new Text(
-                                          'Error: ${snapshot.error}');
-                                    }
+                                    // if (snapshot.hasError) return Text('Error: ${snapshot.error}');
+                                    if (snapshot.hasError) return Text('');
 
                                     if (snapshot.data != null) {
                                       if (snapshot.data.documents.length > 0) {
