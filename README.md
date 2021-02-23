@@ -1,5 +1,3 @@
-
-
 # Fractal (by Artur Begyan)
 
 Fractal is an ML-powered network of interconnected public chats that allows branching of chats into more focused “sub-chats”, thereby overcoming the problem of
@@ -9,7 +7,14 @@ This repository contains the code that powers Fractal's IOS and Android front-en
 
 ## App Screenshots
 
-![shot 1](750x750bb-4.jpg?raw=true)
+![shot 1](750x750bb-1.jpg?raw=true)
+![shot 2](750x750bb-2.jpg?raw=true)
+![shot 1](750x750bb-3.jpg?raw=true)
+![shot 2](750x750bb-4.jpg?raw=true)
+![shot 2](750x750bb-5.jpg?raw=true)
+![shot 2](750x750bb-6.jpg?raw=true)
+![shot 2](750x750bb-7.jpg?raw=true)
+
 
 The current version of Fractal imports hot submissions from the r/worldnews subreddit and converts them into native Fractal chats where users can engage in discussions in a more interactive environment by just messaging each other.
 
