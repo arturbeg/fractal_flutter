@@ -7,6 +7,7 @@ This repository contains the code that powers Fractal's IOS and Android front-en
 
 ## App Screenshots
 
+![shot 2](promo.png?raw=true)
 ![shot 2](Screenshot%202021-02-23%20at%2022.25.15.png?raw=true)
 ![shot 1](750x750bb-1.jpg?raw=true)
 ![shot 2](750x750bb-2.jpg?raw=true)
