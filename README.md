@@ -5,6 +5,12 @@ rapid conversation subject dilution and low engagement. Fractal aims to allow un
 
 This repository contains the code that powers Fractal's IOS and Android front-end interfaces. It is written using the Flutter Framework by Google https://flutter.dev/.
 
+The current version of Fractal imports hot submissions from the r/worldnews subreddit and converts them into native Fractal chats where users can engage in discussions in a more interactive environment by just messaging each other.
+
+Each message in a Fractal chat can be turned into a subchat of the parent chat it was initially created in. This feature of branching chats into more focused subchats aims to encourage the users to discuss niche topics of common interest in real time in an engaged manner.
+
+By double-tapping or long-pressing a message anyone can "zoom" into the message and navigate to the subchat that is centred around the specific message of the "parent" chat (https://appadvice.com/game/app/fractal/1459580178).
+
 
 ## Project Structure
 
