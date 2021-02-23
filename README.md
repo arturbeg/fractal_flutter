@@ -1,9 +1,15 @@
-# Fractal
+
+
+# Fractal (by Artur Begyan)
 
 Fractal is an ML-powered network of interconnected public chats that allows branching of chats into more focused “sub-chats”, thereby overcoming the problem of
 rapid conversation subject dilution and low engagement. Fractal aims to allow unacquainted individuals to spontaneously find and discuss niche topics of common interest in real-time.
 
 This repository contains the code that powers Fractal's IOS and Android front-end interfaces. It is written using the Flutter Framework by Google https://flutter.dev/.
+
+## App Screenshots
+
+![shot 1](750x750bb-4.jpg?raw=true)
 
 The current version of Fractal imports hot submissions from the r/worldnews subreddit and converts them into native Fractal chats where users can engage in discussions in a more interactive environment by just messaging each other.
 
@@ -14,5 +20,6 @@ By double-tapping or long-pressing a message anyone can "zoom" into the message 
 
 ## Project Structure
 
-This is a Flutter mobile application targeting Android and IOS. The code for the flutter app is in the folder named lib. Additionally, this repo contains a series of Firebase configuration files and cloud functions. Additionally, Fractal supports real-time search powered by Algolia (https://www.algolia.com/).
+This is a Flutter mobile application targeting Android and IOS. The code for the flutter app is in the folder named lib. Additionally, this repo contains a series of Firebase configuration files and cloud functions. Fractal also supports real-time search powered by Algolia (https://www.algolia.com/).
+
 
